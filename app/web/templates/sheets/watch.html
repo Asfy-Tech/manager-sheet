@@ -1,0 +1,379 @@
+{% extends "layouts/app.html" %} {% block title %}Watch List{% endblock %} {%
+block style %}
+<style>
+  .loading-spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  .spin {
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  .table-wrapper {
+    position: relative;
+    width: 100%;
+    margin: 0 auto;
+    overflow: auto;
+  }
+
+  .custom-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .custom-table thead th {
+    position: sticky;
+    top: 0;
+    background: #f3f6f9;
+    padding: 15px 20px;
+    font-weight: 600;
+    font-size: 14px;
+    color: #495057;
+    border-bottom: 2px solid #e9ecef;
+  }
+
+  .custom-table tbody td {
+    padding: 12px 20px;
+    font-size: 14px;
+    color: #495057;
+    border-bottom: 1px solid #e9ecef;
+  }
+
+  .custom-table tbody tr:hover {
+    background-color: #f3f6f9;
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="page-content" id="app">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-12">
+        <div
+          class="page-title-box d-sm-flex align-items-center justify-content-between"
+        >
+          <h4 class="mb-sm-0">Watch List</h4>
+          <button
+            class="btn btn-primary"
+            data-bs-toggle="modal"
+            data-bs-target="#createSheetModal"
+          >
+            Thêm công ty
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title mb-0">Companies Watch List</h5>
+          </div>
+          <div class="card-body">
+            <div v-if="loading" class="loading-spinner">
+              <div class="spinner-border text-primary spin" role="status"></div>
+            </div>
+            <div v-else class="table-wrapper">
+              <table class="table custom-table">
+                <thead>
+                  <tr>
+                    <th>STT</th>
+                    <th>Tên công ty</th>
+                    <th>Sheet Link</th>
+                    <!-- <th>Thời gian thêm</th> -->
+                    <th>Hành động</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(item, index) in watchList" :key="index">
+                    <td>{{ ++index }}</td>
+                    <td>{{ item.name }}</td>
+                    <td>
+                      <a :href="`/sheets/${item.id}`" class="btn btn-sm btn-soft-primary">
+                        <i class="ri-eye-line"></i>
+                        Xem Sheet
+                      </a>
+                    </td>
+                    <!-- <td>{{ formatDate(item.created_at) }}</td> -->
+                    <td class="d-flex gap-2">
+                      <a :href="item.link" 
+                         target="_blank" 
+                         class="btn btn-sm btn-soft-info"
+                         title="Mở trong Google Sheets">
+                        <i class="ri-external-link-line"></i>
+                      </a>
+                      <button
+                        @click="confirmDelete(item.id)"
+                        class="btn btn-sm btn-outline-danger"
+                      >
+                        <i class="ri-delete-bin-line"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Xác nhận xóa</h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+          ></button>
+        </div>
+        <div class="modal-body">Bạn có chắc chắn muốn xóa không?</div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Hủy
+          </button>
+          <button
+            type="button"
+            class="btn btn-danger"
+            @click="deleteItem"
+            :disabled="isLoading"
+          >
+            <span
+              v-if="isLoading"
+              class="spinner-border spinner-border-sm me-1"
+            ></span>
+            Xóa
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="modal fade"
+    id="createSheetModal"
+    tabindex="-1"
+    aria-labelledby="exampleModalgridLabel"
+    aria-modal="true"
+  >
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalgridLabel">
+            Thêm mới công ty
+          </h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <form @submit.prevent="submitCreate()">
+            <div class="row g-3">
+              <div class="col-xxl-12">
+                <div>
+                  <label for="firstName" class="form-label">Tên công ty</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    v-model="create.name"
+                    placeholder="Tên công ty"
+                  />
+                </div>
+              </div>
+              <!--end col-->
+              <div class="col-xxl-12">
+                <div>
+                  <label for="lastName" class="form-label"
+                    >Đường dẫn sheet</label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    v-model="create.link"
+                    placeholder="Đường dẫn link sheet"
+                  />
+                </div>
+              </div>
+              <!--end col-->
+              <div class="col-lg-12">
+                <div class="hstack gap-2 justify-content-end">
+                  <button
+                    type="button"
+                    class="btn btn-light"
+                    data-bs-dismiss="modal"
+                  >
+                    Đóng
+                  </button>
+                  <button
+                    type="submit"
+                    :disabled="isLoading"
+                    class="btn btn-primary"
+                  >
+                    <span v-if="isLoading">
+                      <span
+                        class="spinner-border spinner-border-sm loading-sm"
+                      ></span>
+                    </span>
+                    Thêm ngay
+                  </button>
+                </div>
+              </div>
+              <!--end col-->
+            </div>
+            <!--end row-->
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block script %}
+<script>
+  const app = Vue.createApp({
+    setup() {
+      const deleteId = Vue.ref(null);
+      const deleteModal = Vue.ref(null);
+      const watchList = Vue.ref([]);
+      const create = Vue.ref({
+        name: "",
+        link: "",
+      });
+      const loading = Vue.ref(false);
+      const isLoading = Vue.ref(false);
+
+      function confirmDelete(id) {
+        deleteId.value = id;
+        deleteModal.value = new bootstrap.Modal(
+          document.getElementById("deleteModal")
+        );
+        deleteModal.value.show();
+      }
+      async function deleteItem() {
+        if (!deleteId.value) return;
+
+        try {
+          isLoading.value = true;
+          const response = await axios.delete(
+            `/api/sheets/watch/${deleteId.value}`
+          );
+
+          if (response.data.success) {
+            showToast("Xóa thành công!");
+            loadWatchList();
+            deleteModal.value.hide();
+          } else {
+            throw new Error(response.data.error || "Lỗi khi xóa");
+          }
+        } catch (error) {
+          console.error("Delete error:", error);
+          showToast(
+            error.response?.data?.error || "Có lỗi xảy ra khi xóa!",
+            "error"
+          );
+        } finally {
+          isLoading.value = false;
+          deleteId.value = null;
+        }
+      }
+
+      function showToast(message, type = "success") {
+        Toastify({
+          text: message,
+          duration: 3000,
+          close: true,
+          gravity: "top", // Vị trí hiển thị
+          position: "right",
+          backgroundColor: type === "success" ? "green" : "red",
+        }).showToast();
+      }
+
+      const loadWatchList = async () => {
+        try {
+          loading.value = true;
+          const res = await axios.get("/api/sheets/watch");
+          if (res.data?.success) {
+            watchList.value = res.data?.data;
+          }
+        } catch (e) {
+          console.error("Error loading watch list:", e);
+        } finally {
+          loading.value = false;
+        }
+      };
+
+      function formatDate(date){
+        return moment(date).fromNow()
+      }
+
+      Vue.onMounted(() => {
+        loadWatchList();
+      });
+
+      async function submitCreate() {
+        if (!create.value.name.trim() || !create.value.link.trim()) {
+          showToast("Vui lòng nhập đủ thông tin!", "error");
+          return;
+        }
+
+        try {
+          isLoading.value = true;
+          const response = await axios.post("/api/sheets/watch", create.value);
+
+          if (response.data.success) {
+            // Changed from status check to success check
+            showToast("Thêm công ty thành công!");
+            loadWatchList();
+            create.value = { name: "", link: "" }; // Fixed property name
+
+            const modalElement = document.getElementById("createSheetModal");
+            const modalInstance = bootstrap.Modal.getInstance(modalElement);
+            modalInstance.hide();
+          } else {
+            throw new Error(response.data.error || "Unknown error");
+          }
+        } catch (error) {
+          console.error("Lỗi khi thêm công ty:", error);
+          showToast(
+            error.response?.data?.error || "Có lỗi xảy ra khi thêm công ty!",
+            "error"
+          );
+        } finally {
+          isLoading.value = false;
+        }
+      }
+
+      return {
+        watchList,
+        loading,
+        create,
+        isLoading,
+        submitCreate,
+        confirmDelete,
+        deleteItem,
+        formatDate
+      };
+    },
+  });
+
+  app.mount("#app");
+</script>
+{% endblock %}

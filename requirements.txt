@@ -1,0 +1,10 @@
+flask
+python-dotenv
+gspread
+oauth2client
+google-auth-oauthlib
+google-auth-httplib2
+requests
+pandas
+google-api-python-client
+

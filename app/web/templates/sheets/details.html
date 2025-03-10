@@ -1,0 +1,253 @@
+{% extends "layouts/app.html" %} {% block title %}Pages{% endblock %} {% block
+style %}
+<style>
+  .loading-spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  .spin {
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Table Container */
+  .table-wrapper {
+    position: relative;
+    width: 100%;
+    margin: 0 auto;
+    overflow: auto;
+    max-height: 70vh; /* Chiều cao tối đa 70% viewport */
+  }
+
+  /* Custom Table Styles */
+  .custom-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    min-width: 100%;
+  }
+
+  .custom-table thead th {
+    position: sticky;
+    top: 0;
+    background: #f3f6f9;
+    padding: 15px 20px;
+    font-weight: 600;
+    font-size: 14px;
+    color: #495057;
+    text-transform: uppercase;
+    border-bottom: 2px solid #e9ecef;
+    white-space: nowrap;
+  }
+
+  .custom-table tbody td {
+    padding: 12px 20px;
+    font-size: 14px;
+    color: #495057;
+    border-bottom: 1px solid #e9ecef;
+    min-width: 150px; /* Độ rộng tối thiểu cho mỗi cột */
+  }
+
+  /* Hover & Stripe effects */
+  .custom-table tbody tr:nth-child(even) {
+    background-color: #f8f9fa;
+  }
+
+  .custom-table tbody tr:hover {
+    background-color: #f3f6f9;
+  }
+
+  /* Scrollbar styling */
+  .table-wrapper::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .table-wrapper::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+
+  .table-wrapper::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+  }
+
+  .table-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+
+  /* Status styling */
+  .status-cell {
+    padding: 5px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+    font-weight: 500;
+  }
+
+  .status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+
+  .status-progress {
+    background-color: #cce5ff;
+    color: #004085;
+  }
+
+  .status-completed {
+    background-color: #d4edda;
+    color: #155724;
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="page-content">
+  <div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div
+          class="page-title-box d-sm-flex align-items-center justify-content-between"
+        >
+          <h4 class="mb-sm-0">[[ sheetInfo.name ]]</h4>
+          <a href="[[ sheetInfo.link ]]" target="_blank" class="btn btn-soft-info">
+            <i class="ri-external-link-line me-1"></i>
+            Mở trong Google Sheets
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="row" id="app">
+      <div class="col-lg-12">
+        <div class="card">
+          <div
+            class="card-header d-flex justify-content-between align-items-center"
+          >
+            <div class="d-flex align-items-center">
+              <h5 class="card-title mb-0 me-2">List Tasks</h5>
+              <div
+                class="badge bg-soft-info text-info fs-12 d-flex align-items-center"
+              >
+                <!-- <i class="ri-refresh-line me-1"></i> -->
+              </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+              <select
+                class="form-control"
+                id="choiceSheetName"
+                @change="handleSelectSheet"
+              >
+                <option v-for="(name, key) in sheets" :value="name" :key="key">
+                  {{ name }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <div v-if="loading" class="loading-spinner">
+              <div class="spinner-border text-primary spin" role="status"></div>
+            </div>
+            <div v-else class="table-wrapper">
+              <table
+                class="table table-bordered dt-responsive nowrap table-striped align-middle custom-table"
+                style="width: 100%"
+              >
+                <thead>
+                  <tr>
+                    <th v-for="header in headers" :key="header">
+                      {{ header }}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(row, index) in data" :key="index">
+                    <td v-for="header in headers" :key="header">
+                      {{ row[header] }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block script %}
+<script>
+  const app = Vue.createApp({
+    setup() {
+      const sheets = Vue.ref([]);
+      const headers = Vue.ref([]);
+      const data = Vue.ref([]);
+      const loading = Vue.ref(false);
+      const choiceSheet = Vue.ref(null);
+
+      const loadSheets = async () => {
+        try {
+          loading.value = true;
+          let res = await axios.get(`/api/sheets/watch/${SHEET_ID}?name=true`);
+          sheets.value = res.data;
+          Vue.nextTick(() => {
+            choiceSheet.value = new Choices(
+              document.getElementById("choiceSheetName"),
+              {
+                shouldSort: false,
+              }
+            );
+          });
+        } catch (e) {
+          console.error("Error loading sheets:", e);
+        } finally {
+          loading.value = false;
+        }
+      };
+
+      const selectSheet = async (sheetName) => {
+        try {
+          loading.value = true;
+          const res = await axios.get(`/api/sheets/watch/${SHEET_ID}?sheet=${sheetName}`);
+          headers.value = res.data?.headers;
+          data.value = res.data?.data;
+        } catch (e) {
+          console.error("Error fetching sheet data:", e);
+        } finally {
+          loading.value = false;
+        }
+      };
+
+      const handleSelectSheet = (event) => {
+        const sheetName = event.target.value;
+        selectSheet(sheetName);
+      };
+
+      Vue.onMounted(async () => {
+        await loadSheets();
+        Vue.nextTick(() => {
+          if (choiceSheet.value) {
+            selectSheet(choiceSheet.value.getValue().value);
+          }
+        });
+      });
+
+      return { sheets, headers, data, loading, handleSelectSheet };
+    },
+  });
+
+  // Pass sheet_id from Flask to Vue
+  const SHEET_ID = [[sheet_id]];
+
+  app.mount("#app");
+</script>
+{% endblock %}
