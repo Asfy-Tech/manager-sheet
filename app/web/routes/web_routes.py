@@ -15,6 +15,10 @@ def list_tasks():
 def watch_sheets():
     return render_template('sheets/watch.html')
 
+@routes.route("/settings", methods=["GET"]) 
+def settings():
+    return render_template('settings.html')
+
 @routes.route("/sheets/<int:id>", methods=["GET"]) 
 def watch_sheet_detail(id):
     try:
