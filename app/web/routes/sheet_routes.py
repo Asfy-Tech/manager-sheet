@@ -52,6 +52,7 @@ def get_watch_sheet():
 
             result = db.add_path(
                 name=data.get('name', ''),  # name có thể để trống
+                status="active",
                 link=data.get('link'),      # link bắt buộc phải có
             )
 

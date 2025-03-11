@@ -66,10 +66,12 @@ def create_app():
 
 def main():
     app = create_app()
-    watcher = FileWatcher(interval=settings.SYNC_INTERVAL)
-    
-    try:
+
+    if os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
+        watcher = FileWatcher(interval=settings.SYNC_INTERVAL)
         watcher.start()
+
+    try:
         app.run(debug=True, use_reloader=True)
     finally:
         watcher.stop()

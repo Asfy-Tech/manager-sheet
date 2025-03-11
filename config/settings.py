@@ -33,4 +33,10 @@ class Settings:
     # Logging
     LOG_FILE = LOGS_DIR / "file_changes.log"
 
+    # Tasks
+    TASK_ID = 'TASK_ID'
+    TASK_STATUS = 'TRẠNG THÁI'
+    TASK_FINISH_DATE = 'THỜI GIAN HOÀN THÀNH'
+    TASK_STATUS_SUCCESS = 'Ðã hoàn thành'
+
 settings = Settings()

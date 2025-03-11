@@ -146,7 +146,7 @@ block style %}
                     <th>STT</th>
                     <th>Tên công ty</th>
                     <th>Sheet Link</th>
-                    <!-- <th>Thời gian thêm</th> -->
+                    <th>Trạng thái</th>
                     <th>Hành động</th>
                   </tr>
                 </thead>
@@ -160,7 +160,22 @@ block style %}
                         Xem Sheet
                       </a>
                     </td>
-                    <!-- <td>{{ formatDate(item.created_at) }}</td> -->
+                    <td>
+                      <span :class="[
+                        'badge fs-12 d-inline-flex align-items-center', 
+                        item.status === 'active' 
+                          ? 'bg-success-subtle text-success' 
+                          : 'bg-danger-subtle text-danger'
+                      ]">
+                        <i :class="[
+                          'ri fs-13 me-1',
+                          item.status === 'active' 
+                            ? 'ri-check-line' 
+                            : 'ri-error-warning-line'
+                        ]"></i>
+                        {{ item.status === 'active' ? 'Đang hoạt động' : 'Không thể đọc dữ liệu' }}
+                      </span>
+                    </td>
                     <td class="d-flex gap-2">
                       <a :href="item.link" 
                          target="_blank" 
