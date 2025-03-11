@@ -35,15 +35,11 @@ class GoogleSheets:
         Returns:
             bool: True nếu thành công, False nếu thất bại.
         """
-        is_valid, main_sheet_id, _ = self.validate_sheet_url(settings.GOOGLE_SHEET_MAIN_LINK)
+        is_valid, main_sheet_id, _, sheet_ids  = self.validate_sheet_url(settings.GOOGLE_SHEET_MAIN_LINK)
         if not is_valid:
             return False
 
-        # Lấy sheet ID một lần duy nhất
-        if not hasattr(self, 'sheet_ids'):
-            self.sheet_ids = self.get_all_sheet_ids(main_sheet_id)
-
-        sheet_ed = self.sheet_ids.get(sheet_name)
+        sheet_ed = sheet_ids.get(sheet_name)
         if sheet_ed is None:
             print(f"❌ Không tìm thấy sheet: {sheet_name}")
             return False
@@ -106,19 +102,6 @@ class GoogleSheets:
         # Xóa các task không còn tồn tại
         if len(existing_task_ids) > 0:
             self.delete_tasks(values, existing_task_ids, main_sheet_id, sheet_ed)
-
-    def get_all_sheet_ids(self, spreadsheet_id):
-        """
-        Lấy danh sách tất cả sheet ID trong spreadsheet
-        """
-        try:
-            response = self.service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
-            sheets = response.get('sheets', [])
-            sheet_ids = {sheet['properties']['title']: sheet['properties']['sheetId'] for sheet in sheets}
-            return sheet_ids
-        except Exception as e:
-            print(f"❌ Lỗi khi lấy danh sách sheet ID: {e}")
-            return {}
 
 
     def delete_tasks(self, values, existing_task_ids,main_sheet_id, sheet_id):
@@ -183,23 +166,25 @@ class GoogleSheets:
         match = re.search(pattern, url)
         
         if not match:
-            return False, None, "Invalid Google Sheet URL format"
+            return False, None, "Invalid Google Sheet URL format", {}
         
         sheet_id = match.group(1)
         
         try:
             # Try to get sheet metadata
             sheet = self.service.spreadsheets().get(spreadsheetId=sheet_id).execute()
-            return True, sheet_id, "Sheet is accessible"
+            sheets = sheet.get('sheets', [])
+            sheet_ids = {s['properties']['title']: s['properties']['sheetId'] for s in sheets}
+            return True, sheet_id, "Sheet is accessible", sheet_ids
         except HttpError as e:
             if e.resp.status == 403:
-                return False, sheet_id, "Permission denied. Make sure the sheet is shared with the service account"
+                return False, sheet_id, "Permission denied. Make sure the sheet is shared with the service account", {}
             elif e.resp.status == 404:
-                return False, sheet_id, "Sheet not found"
+                return False, sheet_id, "Sheet not found", {}
             else:
-                return False, sheet_id, f"Error accessing sheet: {str(e)}"
+                return False, sheet_id, f"Error accessing sheet: {str(e)}", {}
         except Exception as e:
-            return False, sheet_id, f"Unexpected error: {str(e)}"
+            return False, sheet_id, f"Unexpected error: {str(e)}", {}
         
     def get_sheet_names(self, url: str):
         """
@@ -239,7 +224,7 @@ class GoogleSheets:
         Lấy dữ liệu từ Google Sheet thông qua URL
         Returns: DataFrame hoặc None nếu có lỗi
         """
-        is_valid, sheet_id, message = self.validate_sheet_url(url)
+        is_valid, sheet_id, message, sheet_ids = self.validate_sheet_url(url)
         
         if not is_valid:
             print(f"❌ {message}")

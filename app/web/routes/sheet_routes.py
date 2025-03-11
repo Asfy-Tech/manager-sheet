@@ -48,7 +48,7 @@ def get_watch_sheet():
             raise BadRequest("Link là bắt buộc")
             
         gg_sheet = GoogleSheets()
-        is_valid, sheet_id, message = gg_sheet.validate_sheet_url(data['link'])
+        is_valid, sheet_id, message, sheet_ids = gg_sheet.validate_sheet_url(data['link'])
         
         if not is_valid:
             raise BadRequest(f"Không thể truy cập sheet, hãy cấp quyền cho: {gg_sheet.get_service_account_email()}")

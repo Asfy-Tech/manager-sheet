@@ -3,12 +3,14 @@ import threading
 from datetime import datetime
 from pathlib import Path
 from config.settings import settings
-from flask import session
+import os
 import json
 from app.models.companies import Companies
 from app.models.tasks import Task
 from app.models.notifications import Notification
+import pytz
 from app.services.google_sheets import GoogleSheets 
+vn_timezone = pytz.timezone('Asia/Ho_Chi_Minh')
 class FileWatcher:
     def __init__(self, interval=60):
         self.interval = interval
@@ -16,6 +18,21 @@ class FileWatcher:
         self._last_check = {}
         self._thread = None
         self._cache = {}
+        self.init_cache()
+
+    def init_cache(self):
+        """Đọc nội dung từ file cache/tasks.json và xử lý lỗi"""
+        try:
+            if os.path.exists('cache/tasks.json'):
+                with open('cache/tasks.json', 'r', encoding='utf-8') as f:
+                    try:
+                        self._cache = json.load(f) 
+                    except json.JSONDecodeError:
+                        print("Lỗi định dạng JSON trong file 'cache/tasks.json'")
+            else:
+                print("File 'cache/tasks.json' không tồn tại.")
+        except Exception as e:
+            print(f"Đã xảy ra lỗi khi đọc file: {e}")
 
     def _get_file_info(self, path: Path) -> dict:
         stats = path.stat()
@@ -27,40 +44,54 @@ class FileWatcher:
             'status': 'Modified'
         }
     
-    def _check_task_status(self, task_id: str, new_status: str) -> bool:
-        """
-        Check if task needs sheet update
-        Returns: True if sheet update needed, False otherwise
-        """
-        db_task = Task.get_task(task_id)
+    def _check_task_status(self, sheet: dict, sheet_cache: dict):
+        current_status = sheet.get(settings.TASK_STATUS)
+
+        current_time_vn = datetime.now(vn_timezone)
+        formatted_time = current_time_vn.strftime("%H:%M %d/%m/%Y")
+
         completed_status = settings.TASK_STATUS_SUCCESS
 
         # Case 1: New task with completed status
-        if not db_task and new_status == completed_status:
-            return True # Need update and send
+        if sheet_cache is None:
+            if current_status == completed_status:
+                return True, formatted_time
+            else:
+                return True, ''
+            
+        old_status = sheet_cache.get(settings.TASK_STATUS)
 
         # Case 2: Existing task with status changes involving completed status
-        if db_task:
-            db_status = db_task.get('status')
-            # Task changed from complete to incomplete
-            if db_status == completed_status and new_status != completed_status:
-                return True # Need update and send
-            # Task changed from incomplete to complete
-            if db_status != completed_status and new_status == completed_status:
-                return True # Need update and send
+        # Task changed from incomplete to complete
+        if old_status != completed_status and current_status == completed_status:
+            return True, formatted_time
+        
+        # Task changed from complete to incomplete
+        if old_status == completed_status and current_status != completed_status:
+            return True, ''
 
-        return False
+        return False, None
 
     def _process_sheet_tasks(self, data_sheets):
         gg_sheets = GoogleSheets()
         data_cache = self._cache
         self._cache = data_sheets
+        if not os.path.exists('cache'):
+            os.makedirs('cache')
+        with open('cache/tasks.json', 'w', encoding='utf-8') as f:
+            json.dump(data_sheets, f, indent=4, ensure_ascii=False)
         
         sheet_updates_needed = {}
 
         for sheet_id, sheet in data_sheets.items():
+            sheet_cache = data_cache.get(sheet_id)
+            checkUpdate, time = self._check_task_status(sheet, sheet_cache)
+            if checkUpdate and time is not None:
+                print(f"{sheet_id} - {time}")
+                sheet[settings.TASK_FINISH_DATE] = time
             sheet_updates_needed[sheet_id] = sheet
-
+        # print(json.dumps(sheet_updates_needed, indent=4, ensure_ascii=False))
+        # return
         success = gg_sheets.update_task(sheet_updates_needed)
         print(f'Status Import: {success}')
 
@@ -89,7 +120,8 @@ class FileWatcher:
                 
                 print(f"\n📊 Processing {company.name}...")
                 for dt in data:
-                    data_sheets[dt.get(settings.TASK_ID)] = dt
+                    if dt.get(settings.TASK_ID):
+                        data_sheets[dt.get(settings.TASK_ID)] = dt
 
             except Exception as e:
                 Notification.create(

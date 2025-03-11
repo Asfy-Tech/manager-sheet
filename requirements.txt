@@ -4,9 +4,7 @@ gspread
 oauth2client
 google-auth-oauthlib
 google-auth-httplib2
-requests
-pandas
-mysql-connector-python
-sqlalchemy
 google-api-python-client
+requests
+sqlalchemy
 pymysql
