@@ -7,7 +7,7 @@ from config.settings import settings
 import re
 from googleapiclient.errors import HttpError
 from datetime import datetime
-import pytz
+import json
 
 class GoogleSheets:
     def __init__(self):
@@ -19,110 +19,159 @@ class GoogleSheets:
         self.sheet = self.service.spreadsheets()
     
 
-    def update_task(self, task_id, status, sheet_name='Tasks'):
+    def getIndexCol(self, headers, col):
+        task_id_col = None
+        for idx, header in enumerate(headers):
+            if header.upper() == col:
+                task_id_col = idx
+        return task_id_col
+    
+    def update_task(self, sheet_data, sheet_name='Tasks'):
         """
-        Update task status in Google Sheet
+        Cập nhật trạng thái task trong Google Sheet.
         Args:
-            task_id: Task ID to update 
-            status: New status to set
-            sheet_name: Sheet name (default: Tasks)
+            sheet_data: Dữ liệu cần cập nhật
+            sheet_name: Tên sheet (mặc định: 'Tasks')
         Returns:
-            bool: True if successful, False otherwise
+            bool: True nếu thành công, False nếu thất bại.
+        """
+        is_valid, main_sheet_id, _ = self.validate_sheet_url(settings.GOOGLE_SHEET_MAIN_LINK)
+        if not is_valid:
+            return False
+
+        # Lấy sheet ID một lần duy nhất
+        if not hasattr(self, 'sheet_ids'):
+            self.sheet_ids = self.get_all_sheet_ids(main_sheet_id)
+
+        sheet_ed = self.sheet_ids.get(sheet_name)
+        if sheet_ed is None:
+            print(f"❌ Không tìm thấy sheet: {sheet_name}")
+            return False
+
+        # Lấy dữ liệu hiện có trong Google Sheets
+        result = self.sheet.values().get(spreadsheetId=main_sheet_id, range=sheet_name).execute()
+        values = result.get('values', [])
+        if not values:
+            print("❌ Không tìm thấy dữ liệu trong sheet")
+            return False
+
+        headers = values[0] if values else []
+        task_id_col = self.getIndexCol(headers, settings.TASK_ID)
+        if task_id_col is None:
+            print(f"❌ Không tìm thấy cột {settings.TASK_ID}")
+            return False
+
+        existing_task_ids = set()
+        updates = []
+
+        # Duyệt qua danh sách cần cập nhật
+        for sheet_id, sheet in sheet_data.items():
+            try:
+                existing_task_ids.add(sheet_id)
+                row_idx = None
+
+                # Tìm hàng có task ID tương ứng
+                for idx, row in enumerate(values[1:], start=1):
+                    if len(row) > task_id_col and row[task_id_col] == sheet_id:
+                        row_idx = idx
+                        break
+
+                if row_idx is None:
+                    print(f"➡ Task ID {sheet_id} chưa có, cần tạo mới")
+                    row_idx = len(values)
+                    new_row = [''] * len(headers)
+                    new_row[task_id_col] = sheet_id
+                    for col, value in sheet.items():
+                        col_idx = self.getIndexCol(headers, col)
+                        if col_idx is not None:
+                            new_row[col_idx] = value
+                    updates.append({'range': f"{sheet_name}!A{row_idx + 1}", 'values': [new_row]})
+                    continue
+
+                # Cập nhật dữ liệu nếu task đã tồn tại
+                for col, value in sheet.items():
+                    if col == settings.TASK_ID:
+                        continue
+                    col_idx = self.getIndexCol(headers, col)
+                    if col_idx is not None:
+                        updates.append({'range': f"{sheet_name}!{chr(65 + col_idx)}{row_idx + 1}", 'values': [[value]]})
+            except Exception as e:
+                print(f"❌ Lỗi khi cập nhật task {sheet_id}: {e}")
+                continue
+
+        # Gửi batch update
+        if updates:
+            self.sheet.values().batchUpdate(spreadsheetId=main_sheet_id, body={'valueInputOption': 'RAW', 'data': updates}).execute()
+
+        # Xóa các task không còn tồn tại
+        if len(existing_task_ids) > 0:
+            self.delete_tasks(values, existing_task_ids, main_sheet_id, sheet_ed)
+
+    def get_all_sheet_ids(self, spreadsheet_id):
+        """
+        Lấy danh sách tất cả sheet ID trong spreadsheet
         """
         try:
-            # Get sheet ID from main link
-            is_valid, sheet_id, _ = self.validate_sheet_url(settings.GOOGLE_SHEET_MAIN_LINK)
-            if not is_valid:
-                return False
+            response = self.service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
+            sheets = response.get('sheets', [])
+            sheet_ids = {sheet['properties']['title']: sheet['properties']['sheetId'] for sheet in sheets}
+            return sheet_ids
+        except Exception as e:
+            print(f"❌ Lỗi khi lấy danh sách sheet ID: {e}")
+            return {}
 
-            # Get all data to find row index
-            result = self.sheet.values().get(
-                spreadsheetId=sheet_id,
-                range=sheet_name
-            ).execute()
-            
-            values = result.get('values', [])
-            if not values:
-                return False
 
-            headers = values[0]
-            
-            # Find column indexes
-            task_id_col = None
-            status_col = None
-            success_date = None
-            for idx, header in enumerate(headers):
-                if header.upper() == settings.TASK_ID:
-                    task_id_col = idx
-                elif header.upper() == settings.TASK_STATUS:
-                    status_col = idx
-                elif header.upper() == settings.TASK_FINISH_DATE:
-                    success_date = idx
-            
-            if task_id_col is None or status_col is None or success_date is None:
-                print("❌ Required columns not found")
-                return False
+    def delete_tasks(self, values, existing_task_ids,main_sheet_id, sheet_id):
+        """
+        Xóa các task không còn tồn tại trong danh sách cập nhật.
+        """
+        headers = values[0] if values else []
+        task_id_col = self.getIndexCol(headers, settings.TASK_ID)
+        if task_id_col is None:
+            print(f"❌ Không tìm thấy cột {settings.TASK_ID}")
+            return False
 
-            # Find row with matching task_id
-            row_idx = None
-            for idx, row in enumerate(values[1:], start=1):
-                if len(row) > task_id_col and row[task_id_col] == task_id:
-                    row_idx = idx
-                    break
+        # Danh sách task ID hiện tại
+        current_existing_task_ids = {row[task_id_col] for row in values[1:] if len(row) > task_id_col}
 
-            if row_idx is None:
-                print(f"❌ Task ID {task_id} not found")
-                return False
+        # Danh sách cần xóa
+        tasks_to_delete = current_existing_task_ids - set(existing_task_ids)
 
-            # Prepare update data
-            updates = []
-            
-            # Always update status
-            status_range = f"{sheet_name}!{chr(65 + status_col)}{row_idx + 1}"
-            updates.append({
-                'range': status_range,
-                'values': [[status]]
-            })
-
-            # Update date field based on status
-            date_range = f"{sheet_name}!{chr(65 + success_date)}{row_idx + 1}"
-            if status == settings.TASK_STATUS_SUCCESS:
-                # Add completion date if status is success
-                vietnam_tz = pytz.timezone('Asia/Ho_Chi_Minh')
-                current_time = datetime.now(vietnam_tz)
-                formatted_date = current_time.strftime("%H:%M %d/%m/%Y")
-                updates.append({
-                    'range': date_range,
-                    'values': [[formatted_date]]
-                })
-            else:
-                # Clear date if status is not success
-                updates.append({
-                    'range': date_range,
-                    'values': [['']]  # Empty string to clear the cell
-                })
-            
-            # Batch update request
-            batch_update_body = {
-                'valueInputOption': 'RAW',
-                'data': updates
-            }
-
-            self.sheet.values().batchUpdate(
-                spreadsheetId=sheet_id,
-                body=batch_update_body
-            ).execute()
-
-            print(f"✅ Updated task {task_id} with status: {status}")
-            if status == settings.TASK_STATUS_SUCCESS:
-                print(f"   Added completion date: {formatted_date}")
-            else:
-                print("   Cleared completion date")
+        if not tasks_to_delete:
+            print("✅ Không có task nào cần xóa")
             return True
 
-        except Exception as e:
-            print(f"❌ Error updating task: {e}")
-            return False
+        print(f"🔴 Xóa các task: {tasks_to_delete}")
+
+        rows_to_delete = [
+            idx for idx, row in enumerate(values[1:], start=2)
+            if len(row) > task_id_col and row[task_id_col] in tasks_to_delete
+        ]
+
+        if not rows_to_delete:
+            print("✅ Không có hàng nào cần xóa")
+            return True
+
+        # Xóa từ hàng cuối để tránh lệch index
+        rows_to_delete.sort(reverse=True)
+
+        # Gửi batch request để xóa hàng
+        requests = [{
+            "deleteDimension": {
+                "range": {
+                    "sheetId": sheet_id,  # Sử dụng đúng sheetId thay vì mặc định 0
+                    "dimension": "ROWS",
+                    "startIndex": idx - 1,
+                    "endIndex": idx
+                }
+            }
+        } for idx in rows_to_delete]
+
+        self.service.spreadsheets().batchUpdate(spreadsheetId=main_sheet_id, body={"requests": requests}).execute()
+
+        print("✅ Đã xóa các task không còn tồn tại")
+        return True
+
 
     def validate_sheet_url(self, url: str) -> tuple:
         """

@@ -1,16 +1,28 @@
 from . import routes
+from flask import current_app as app
 from flask import jsonify, stream_with_context, Response, request
 from app.services.google_sheets import add_task, get_tasks, get_sheet_names, GoogleSheets
 import json
-from app.models.watch_path import WatchPathDB
+from werkzeug.exceptions import NotFound, BadRequest
+from app.models.companies import Companies
 from time import sleep
 from config.settings import settings
 
 
 @routes.route("/api/sheets/<sheet_name>", methods=["GET"])
 def get_sheet_data(sheet_name):
-    data = get_tasks(sheet_name)
-    return jsonify(data)
+    try:
+        data = get_tasks(sheet_name)
+        if not data:
+            raise NotFound(f"Sheet '{sheet_name}' not found")
+        return jsonify(data)
+    except Exception as e:
+        app.logger.error(f"Error getting sheet data: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
 
 @routes.route("/api/sheets", methods=["GET"]) 
 def api_get_name():
@@ -20,65 +32,57 @@ def api_get_name():
 
 @routes.route("/api/sheets/watch", methods=["GET", "POST"]) 
 def get_watch_sheet():
-    db = WatchPathDB()
-    if request.method == 'GET':
-        try:
-            paths = db.get_all_paths()
+    try:
+        db = Companies()
+        if request.method == 'GET':
+            paths = db.get()
+            paths = [n.to_dict() for n in paths]
             return jsonify({
                 "success": True,
                 "data": paths
             })
-        except Exception as e:
-            return jsonify({
-                "success": False,
-                "error": str(e)
-            }), 500
-    elif request.method == 'POST': 
+        
+        # POST method
+        data = request.get_json()
+        if not data or not data.get('link'):
+            raise BadRequest("Link là bắt buộc")
+            
         gg_sheet = GoogleSheets()
-        try:
-            data = request.json
-            if not data or not data.get('link'):
-                return jsonify({
-                    "success": False,
-                    "error": "Link là bắt buộc"
-                }), 400
-            is_valid, sheet_id, message = gg_sheet.validate_sheet_url(data.get('link'))
-            if is_valid == False:
-                return jsonify({
-                    "success": False,
-                    "message": message,
-                    f"error": f"Không thể truy cập sheet, hãy cấp quyền cho : {gg_sheet.get_service_account_email()}"
-                }), 400
-
-            result = db.add_path(
-                name=data.get('name', ''),  # name có thể để trống
-                status="active",
-                link=data.get('link'),      # link bắt buộc phải có
-            )
-
-            if result:
-                return jsonify({
-                    "success": True,
-                    "message": "Thêm đường dẫn thành công"
-                }), 201
-            else:
-                return jsonify({
-                    "success": False,
-                    "error": "Link này đã tồn tại"
-                }), 400
-
-        except Exception as e:
-            return jsonify({
-                "success": False,
-                "error": str(e)
-            }), 500
+        is_valid, sheet_id, message = gg_sheet.validate_sheet_url(data['link'])
+        
+        if not is_valid:
+            raise BadRequest(f"Không thể truy cập sheet, hãy cấp quyền cho: {gg_sheet.get_service_account_email()}")
+            
+        result = db.create(
+            name=data.get('name', ''),
+            sheet_link=data['link'],
+            status='active',
+            comment='',
+        )
+        
+        return jsonify({
+            "success": True,
+            "data": result.to_dict()
+        })
+            
+    except BadRequest as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 400
+    except Exception as e:
+        app.logger.error(f"Error in watch sheet: {str(e)}")
+        return jsonify({
+            "success": False, 
+            "error": "Internal server error"
+        }), 500
 
 @routes.route("/api/sheets/watch/<int:id>", methods=["GET","DELETE"]) 
 def delete_watch_sheet(id):
-    db = WatchPathDB()
+    db = Companies()
     if request.method == 'DELETE':
         try:
-            if db.delete_path(id):
+            if db.delete_by_id(id):
                 return jsonify({
                     "success": True,
                     "message": "Xóa thành công"
@@ -96,7 +100,7 @@ def delete_watch_sheet(id):
         gg_sheet = GoogleSheets()
         params = request.args
         try:
-            sheet = db.get_path_by_id(id)
+            sheet = db.find(id).to_dict()
             if not sheet:
                 return jsonify({
                     "success": False,
@@ -104,11 +108,11 @@ def delete_watch_sheet(id):
                 }), 404
             
             if 'name' in params: 
-                sheet_names = gg_sheet.get_sheet_names(sheet["link"])
+                sheet_names = gg_sheet.get_sheet_names(sheet["sheet_link"])
                 return jsonify(sheet_names)
             
             if 'sheet' in params: 
-                data = gg_sheet.get_data_from_link(sheet["link"], params.get('sheet'))
+                data = gg_sheet.get_data_from_link(sheet["sheet_link"], params.get('sheet'))
                 return jsonify(data)
             
             

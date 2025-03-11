@@ -1,17 +1,20 @@
 from . import routes
 from flask import jsonify, Response, request
-from app.models.notification import NotificationDB
+from app.models.notifications import Notification
 
 @routes.route("/api/notifications", methods=["GET"])
 def get_notifications():
     try:
-        db = NotificationDB()
-        limit = request.args.get('limit', 50, type=int)
-        offset = request.args.get('offset', 0, type=int)
-        notifications = db.get_notifications(limit, offset)
+    #  Lấy danh sách thông báo
+        notifications = Notification.get()
+
+        # Đếm số lượng thông báo chưa đọc
+        unread_count = len([n for n in notifications if not n.is_read])
+
         return jsonify({
             "success": True,
-            "data": notifications
+            "data": [n.to_dict() for n in notifications],
+            "unread_count": unread_count
         })
     except Exception as e:
         return jsonify({
@@ -29,7 +32,7 @@ def create_notification():
                 "error": "Title and content are required"
             }), 400
 
-        db = NotificationDB()
+        db = Notification()
         success = db.add_notification(
             title=data['title'],
             content=data['content']

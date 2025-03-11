@@ -3,20 +3,19 @@ import threading
 from datetime import datetime
 from pathlib import Path
 from config.settings import settings
+from flask import session
 import json
-from app.models.watch_path import WatchPathDB
-from app.models.task import TaskDB
-from app.models.notification import NotificationDB
+from app.models.companies import Companies
+from app.models.tasks import Task
+from app.models.notifications import Notification
 from app.services.google_sheets import GoogleSheets 
 class FileWatcher:
     def __init__(self, interval=60):
         self.interval = interval
         self._running = False
         self._last_check = {}
-        self.task_db = TaskDB()
-        self.notification_db = NotificationDB()
-        self.watch_path_db = WatchPathDB()
-        self._thread = None  # Chỉ lưu 1 thread duy nhất
+        self._thread = None
+        self._cache = {}
 
     def _get_file_info(self, path: Path) -> dict:
         stats = path.stat()
@@ -33,7 +32,7 @@ class FileWatcher:
         Check if task needs sheet update
         Returns: True if sheet update needed, False otherwise
         """
-        db_task = self.task_db.get_task(task_id)
+        db_task = Task.get_task(task_id)
         completed_status = settings.TASK_STATUS_SUCCESS
 
         # Case 1: New task with completed status
@@ -52,74 +51,53 @@ class FileWatcher:
 
         return False
 
-    def _process_sheet_tasks(self, company: dict, data: list, headers: list):
-        """Process tasks from a sheet"""
-        tasks_to_upsert = []
+    def _process_sheet_tasks(self, data_sheets):
         gg_sheets = GoogleSheets()
-        sheet_updates_needed = []
+        data_cache = self._cache
+        self._cache = data_sheets
+        
+        sheet_updates_needed = {}
 
-        for row in data:
-            row_upper = {k.upper(): v for k, v in row.items()}
-            task_id = row_upper.get(settings.TASK_ID)
-            status = row_upper.get(settings.TASK_STATUS, "")
+        for sheet_id, sheet in data_sheets.items():
+            sheet_updates_needed[sheet_id] = sheet
 
-            if not task_id:  # Skip rows without task ID
-                continue
-
-            if self._check_task_status(task_id, status):
-                sheet_updates_needed.append({
-                    'task_id': task_id,
-                    'status': status
-                })
-
-            tasks_to_upsert.append({
-                'task_id': task_id,
-                'status': status
-            })
-
-        # Bulk upsert tasks
-        if tasks_to_upsert:
-            success = self.task_db.bulk_upsert_tasks(tasks_to_upsert)
-            if not success:
-                print(f"❌ Error upserting tasks for {company.get('name')}")
-
-        # Print sheet update notifications
-        if sheet_updates_needed:
-            print(f"\n🔄 Sheet updates needed for {company.get('name')}:")
-            for task in sheet_updates_needed:
-                gg_sheets.update_task(task['task_id'],task['status'])
+        success = gg_sheets.update_task(sheet_updates_needed)
+        print(f'Status Import: {success}')
 
     def _check_files(self):
         """Giả lập kiểm tra file"""
         gg_sheets = GoogleSheets()
-        companies = self.watch_path_db.get_all_paths()
+        companies = Companies.get()
+        data_sheets = {}
         for company in companies:
             try:
-                link = company.get('link')
+                link = company.sheet_link
                 res = gg_sheets.get_data_from_link(link, 'Tasks')
                 if res is None:
-                    print(f"❌ Cannot access sheet for {company.get('name')}")
-                    self.watch_path_db.update_path_status(company.get('id'), 'deactive')
-                    continue
+                    print(f"❌ Cannot access sheet for {company.name}")
+                    company.update(status='deactive')
+                    raise Exception('Không thể đọc dữ liệu!')
 
-                self.watch_path_db.update_path_status(company.get('id'), 'active')
+                company.update(status='active')
                 headers = res.get('headers')
                 data = res.get('data')
                 lower_headers = [h.upper() for h in headers]
                 if settings.TASK_ID not in lower_headers or settings.TASK_STATUS not in lower_headers:
-                    print(f"❌ Invalid sheet format for {company.get('name')}")
-                    self.watch_path_db.update_path_status(company.get('id'), 'deactive')
-                    continue
+                    print(f"❌ Invalid sheet format for {company.name}")
+                    company.update(status='deactive')
+                    raise Exception(f'Cột: {settings.TASK_ID} hoặc {settings.TASK_STATUS} không tồn tại!')
                 
-                print(f"\n📊 Processing {company.get('name')}...")
-                self._process_sheet_tasks(company, data, headers)
+                print(f"\n📊 Processing {company.name}...")
+                for dt in data:
+                    data_sheets[dt.get(settings.TASK_ID)] = dt
 
             except Exception as e:
-                self.notification_db.add_notification(
-                    title=f"Công ty: {company.get('name')}",
-                    content=f"Không thể đọc dược dữ liệu!"
+                Notification.create(
+                    title=f"Công ty: {company.name}",
+                    content=e
                 )
-                print(f"Lỗi khi đọc công ty: {company.get('name')}",e)
+                print(f"Lỗi khi đọc công ty: {company.name}",e)
+        self._process_sheet_tasks(data_sheets)
 
     def start(self):
         """Bắt đầu quá trình theo dõi file"""
@@ -128,19 +106,20 @@ class FileWatcher:
             return
 
         self._running = True
-
         def run():
+            index = 0
             while self._running:
-                
-                print("=> Start")
+                index += 1
+                print(f"=> Start: {index}")
                 self._check_files()
-
+                if index >= 2: 
+                    break 
                 for i in range(self.interval, 0, -1):
                     print(f"Chờ: {i}s")
                     time.sleep(1)
-
-        self._thread = threading.Thread(target=run, daemon=True)
-        self._thread.start()
+        run()
+        # self._thread = threading.Thread(target=run, daemon=True)
+        # self._thread.start()
 
     def stop(self):
         """Dừng quá trình theo dõi file"""

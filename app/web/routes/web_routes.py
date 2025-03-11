@@ -1,6 +1,6 @@
 from . import routes
 from flask import render_template, abort
-from app.models.watch_path import WatchPathDB
+from app.models.companies import Companies
 
 @routes.route("/", methods=["GET"])
 def main():
@@ -22,8 +22,8 @@ def settings():
 @routes.route("/sheets/<int:id>", methods=["GET"]) 
 def watch_sheet_detail(id):
     try:
-        db = WatchPathDB()
-        sheet = db.get_path_by_id(id)
+        db = Companies()
+        sheet = db.find(id).to_dict()
         if not sheet:
             abort(404)
         return render_template('sheets/details.html', sheet_id=id, sheetInfo=sheet)

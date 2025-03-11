@@ -21,7 +21,14 @@ class Settings:
     
     # Database settings
     DATABASE_PATH = BASE_DIR / "database.db"
+    DB_HOST = os.getenv('DB_HOST', 'localhost')
+    DB_PORT = os.getenv('DB_PORT', '3306')
+    DB_NAME = os.getenv('DB_NAME', 'manager_sheets')
+    DB_USER = os.getenv('DB_USER', 'root')
+    DB_PASS = os.getenv('DB_PASS', '')
     
+    DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+
     # Google settings
     GOOGLE_SHEET_MAIN_LINK = os.getenv("GOOGLE_SHEET_MAIN_LINK")
     SHEET_GID = os.getenv("SHEET_GID")
