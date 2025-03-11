@@ -25,4 +25,4 @@ logs/*
 .idea/
 
 # Static files
-static/libs/
+# static/libs/
