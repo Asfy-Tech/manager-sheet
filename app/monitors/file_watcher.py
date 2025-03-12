@@ -1,14 +1,16 @@
 import time
 import threading
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from config.settings import settings
 import os
 import json
+from app.services.bot_telegram import bot
 from app.models.companies import Companies
 from app.models.tasks import Task
 from app.models.notifications import Notification
 import pytz
+from app.models.telegram_message import TelegramMessage
 from app.services.google_sheets import GoogleSheets 
 vn_timezone = pytz.timezone('Asia/Ho_Chi_Minh')
 class FileWatcher:
@@ -18,6 +20,7 @@ class FileWatcher:
         self._last_check = {}
         self._thread = None
         self._cache = {}
+        self._messages = {}
         self.init_cache()
 
     def init_cache(self):
@@ -85,21 +88,78 @@ class FileWatcher:
 
         for sheet_id, sheet in data_sheets.items():
             sheet_cache = data_cache.get(sheet_id)
+            self._check_and_send_message(sheet_id, sheet)
             checkUpdate, time = self._check_task_status(sheet, sheet_cache)
             if checkUpdate and time is not None:
-                print(f"{sheet_id} - {time}")
                 sheet[settings.TASK_FINISH_DATE] = time
             sheet_updates_needed[sheet_id] = sheet
-        # print(json.dumps(sheet_updates_needed, indent=4, ensure_ascii=False))
-        # return
         success = gg_sheets.update_task(sheet_updates_needed)
         print(f'Status Import: {success}')
+        # bot.send_multiple_tasks(self._messages)
+
+
+    def _check_and_send_message(self, sheet_id, sheet):
+        deadline_str = sheet.get(settings.TASK_DEADLINE)
+        if not deadline_str:
+            return
+        
+        try:
+            deadline = datetime.strptime(deadline_str, "%d/%m/%Y").date()
+        except ValueError:
+            print(f"❌ Lỗi: Định dạng ngày không hợp lệ - {deadline_str}")
+            return
+
+        current_time = datetime.now(vn_timezone)
+        current_date_vn = current_time.date()
+
+        one_day_later = current_date_vn + timedelta(days=1)
+        two_days_later = current_date_vn + timedelta(days=2)
+
+        if deadline > two_days_later:
+            return
+        
+        if deadline == one_day_later:
+            print(f"Task: {sheet_id} lớn hơn hiện tại 1 ngày!")
+        elif deadline == current_date_vn:
+            print(f"Task: {sheet_id} là ngày hiện tại!")
+        else:
+            print(f"Task: {sheet_id} Nhỏ hơn hiện tại!")
+        
+        # data = {
+        #     "category": sheet.get("HẠNG MỤC"),
+        #     "todo": sheet.get("VIỆC CẦN LÀM"),
+        #     "representative": sheet.get("PHỤ TRÁCH"),
+        #     "support": sheet.get("HỖ TRỢ"),
+        #     "status": sheet.get("TRẠNG THÁI"),
+        #     "deadline": deadline,
+        #     "delay": (current_date_vn - deadline).days if deadline else None,
+        # }
+
+        # task = TelegramMessage.find_by_task_and_date(sheet_id, current_date_vn)
+        # if task:
+        #     if current_time.hour < 8:
+        #         task.update(**data)
+        # else:
+        #     task = TelegramMessage.create(task_id=sheet_id, send_to=5882159790, **data)
+        
+        # if current_time.hour >= 8 and task.is_seen == False:
+        #     # So sánh deadline với hôm nay
+        #     row = {
+        #         'task': task,
+        #         'sheet': sheet,
+        #     }
+        #     if deadline < current_date_vn:
+        #         self._messages['late'].append(row)
+        #     elif deadline == current_date_vn:
+        #         self._messages['today'].append(row)
+
 
     def _check_files(self):
         """Giả lập kiểm tra file"""
         gg_sheets = GoogleSheets()
         companies = Companies.get()
         data_sheets = {}
+        self._messages = {}
         for company in companies:
             try:
                 link = company.sheet_link
@@ -139,19 +199,13 @@ class FileWatcher:
 
         self._running = True
         def run():
-            index = 0
             while self._running:
-                index += 1
-                print(f"=> Start: {index}")
                 self._check_files()
-                if index >= 2: 
-                    break 
                 for i in range(self.interval, 0, -1):
                     print(f"Chờ: {i}s")
                     time.sleep(1)
-        run()
-        # self._thread = threading.Thread(target=run, daemon=True)
-        # self._thread.start()
+        self._thread = threading.Thread(target=run, daemon=True)
+        self._thread.start()
 
     def stop(self):
         """Dừng quá trình theo dõi file"""

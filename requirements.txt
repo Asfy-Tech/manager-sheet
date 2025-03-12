@@ -8,3 +8,5 @@ google-api-python-client
 requests
 sqlalchemy
 pymysql
+pyjwt
+bcrypt

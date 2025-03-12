@@ -246,9 +246,8 @@
           loading.value = true;
           const res = await axios.get(`/api/sheets/${sheetName}`);
           headers.value = res.data?.headers;
-          console.log(res.data)
           data.value = res.data?.data;
-          initEventSource(sheetName);
+          // initEventSource(sheetName);
         } catch (e) {
           console.error("Error fetching sheet data:", e);
         } finally {

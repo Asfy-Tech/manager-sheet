@@ -6,7 +6,9 @@
         "YÊU CẦU CÔNG VIỆC": "",
         "PHỤ TRÁCH": "Thành - MKT",
         "HỖ TRỢ": "",
-        "TRẠNG THÁI": "Chưa bắt đầu"
+        "TRẠNG THÁI": "Đang thực hiện",
+        "START": "",
+        "DEADLINE": "06/03/2025"
     },
     "TASK_2d0357b7": {
         "TASK_ID": "TASK_2d0357b7",
@@ -24,7 +26,9 @@
         "YÊU CẦU CÔNG VIỆC": "",
         "PHỤ TRÁCH": "Thành - MKT",
         "HỖ TRỢ": "",
-        "TRẠNG THÁI": "Tạm hoãn"
+        "TRẠNG THÁI": "Tạm hoãn",
+        "START": "",
+        "DEADLINE": "30/03/2025"
     },
     "TASK_e666a28c": {
         "TASK_ID": "TASK_e666a28c",
@@ -33,7 +37,7 @@
         "YÊU CẦU CÔNG VIỆC": "",
         "PHỤ TRÁCH": "Thành - MKT",
         "HỖ TRỢ": "",
-        "TRẠNG THÁI": "Chưa bắt đầu",
+        "TRẠNG THÁI": "Ðã hoàn thành",
         "START": "",
         "DEADLINE": "",
         "THÀNH PHẨM": "",
@@ -41,7 +45,7 @@
     },
     "TASK_b001a7de": {
         "TASK_ID": "TASK_b001a7de",
-        "HẠNG MỤC": "Fanpage Bánh Mì Xì Phố",
+        "HẠNG MỤC": "Fanpage Bánh Mì Xì Phố PHẠM HÙNG",
         "VIỆC CẦN LÀM": "Lập kênh Fanpage",
         "YÊU CẦU CÔNG VIỆC": "",
         "PHỤ TRÁCH": "",
@@ -60,11 +64,13 @@
     "TASK_79a6fb84": {
         "TASK_ID": "TASK_79a6fb84",
         "HẠNG MỤC": "TikTok",
-        "VIỆC CẦN LÀM": "Sản xuất nội dung",
+        "VIỆC CẦN LÀM": "Sản xuất nội dung OKOK",
         "YÊU CẦU CÔNG VIỆC": "Quay các content liên quan quá trình làm bánh, đóng gói, dịch vụ…",
-        "PHỤ TRÁCH": "Phương Anh - MKT",
+        "PHỤ TRÁCH": "Phương Anh - MKT - 123321321",
         "HỖ TRỢ": "",
-        "TRẠNG THÁI": "Đang thực hiện"
+        "TRẠNG THÁI": "Đang thực hiện",
+        "START": "",
+        "DEADLINE": "12/03/2025"
     },
     "TASK_72e3aeb9": {
         "TASK_ID": "TASK_72e3aeb9",
@@ -73,7 +79,9 @@
         "YÊU CẦU CÔNG VIỆC": "Tặng 200 bánh mỳ dùng thử vào những ngày trước khai trương, trên các hội nhóm dành cho sinh viên…nhằm tạo hiệu ứng gây sự chú ý với người qua đường",
         "PHỤ TRÁCH": "Phương Anh - MKT",
         "HỖ TRỢ": "",
-        "TRẠNG THÁI": "Đang thực hiện"
+        "TRẠNG THÁI": "Đang thực hiện",
+        "START": "",
+        "DEADLINE": "13/03/2025"
     },
     "TASK_131158c9": {
         "TASK_ID": "TASK_131158c9",
@@ -91,7 +99,9 @@
         "YÊU CẦU CÔNG VIỆC": "Tạo hiệu ứng trên facebook bằng cách book bài đăng đến từ những fb nhiều tương tác bạn bè thật.",
         "PHỤ TRÁCH": "Ninh Loan",
         "HỖ TRỢ": "",
-        "TRẠNG THÁI": "Ðã hoàn thành"
+        "TRẠNG THÁI": "Tạm hoãn",
+        "START": "",
+        "DEADLINE": "18/03/2025"
     },
     "TASK_507be7c1": {
         "TASK_ID": "TASK_507be7c1",

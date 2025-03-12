@@ -1,5 +1,5 @@
-from . import routes
-from flask import render_template, abort
+from . import routes, guests
+from flask import render_template, abort, redirect, url_for, session, jsonify
 from app.models.companies import Companies
 
 @routes.route("/", methods=["GET"])
@@ -19,6 +19,10 @@ def watch_sheets():
 def settings():
     return render_template('settings.html')
 
+@routes.route("/telegrams/users", methods=["GET"]) 
+def telegrams_users():
+    return render_template('telegrams/users.html')
+
 @routes.route("/sheets/<int:id>", methods=["GET"]) 
 def watch_sheet_detail(id):
     try:
@@ -31,3 +35,7 @@ def watch_sheet_detail(id):
         print(e)
         abort(500)
 
+@routes.route("/api/logout", methods=["POST"])
+def logout():
+    session.clear()
+    return jsonify({"success": True, "message": "Đăng xuất thành công"}), 200

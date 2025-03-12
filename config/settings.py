@@ -29,21 +29,28 @@ class Settings:
     
     DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
+    # App Key
+    APP_KEY = os.getenv('APP_KEY', '')
+
     # Google settings
     GOOGLE_SHEET_MAIN_LINK = os.getenv("GOOGLE_SHEET_MAIN_LINK")
-    SHEET_GID = os.getenv("SHEET_GID")
     CREDENTIALS_PATH = BASE_DIR / "credentials.json"
     
     # Monitoring settings
-    SYNC_INTERVAL = int(os.getenv("SYNC_INTERVAL", "5"))
+    SYNC_INTERVAL = int(os.getenv("SYNC_INTERVAL", "60"))
     
+    # Telegram
+    TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "7018095153:AAFzuT3T8nU1l1lN7bZ6n5geq1R0kNtkMYQ")
+
     # Logging
     LOG_FILE = LOGS_DIR / "file_changes.log"
 
     # Tasks
     TASK_ID = 'TASK_ID'
     TASK_STATUS = 'TRẠNG THÁI'
+    TASK_DEADLINE = 'DEADLINE'
     TASK_FINISH_DATE = 'THỜI GIAN HOÀN THÀNH'
     TASK_STATUS_SUCCESS = 'Ðã hoàn thành'
+    
 
 settings = Settings()

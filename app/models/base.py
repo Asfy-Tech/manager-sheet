@@ -80,6 +80,14 @@ class BaseModel(Base):
             db_session.rollback()
             return False
         
+    def save(self):
+        """Lưu thay đổi vào database."""
+        try:
+            db_session.commit()
+        except:
+            db_session.rollback()
+            raise
+        
     @classmethod
     def delete_by_id(cls, id: int) -> bool:
         instance = db_session.query(cls).filter_by(id=id).first()

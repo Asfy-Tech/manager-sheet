@@ -1,0 +1,587 @@
+{% extends "layouts/app.html" %} {% block title %}Danh sách nhân sự{% endblock
+%} {% block style %}
+<style>
+  .loading-spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  .spin {
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Table Container */
+  .table-wrapper {
+    position: relative;
+    width: 100%;
+    margin: 0 auto;
+    overflow: auto;
+    max-height: 70vh; /* Chiều cao tối đa 70% viewport */
+  }
+
+  /* Custom Table Styles */
+  .custom-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    min-width: 100%;
+  }
+
+  .custom-table thead th {
+    position: sticky;
+    top: 0;
+    background: #f3f6f9;
+    padding: 15px 20px;
+    font-weight: 600;
+    font-size: 14px;
+    color: #495057;
+    text-transform: uppercase;
+    border-bottom: 2px solid #e9ecef;
+    white-space: nowrap;
+  }
+
+  .custom-table tbody td {
+    padding: 7px 14px;
+    font-size: 12px;
+    vertical-align: middle;
+    color: #495057;
+    border-bottom: 1px solid #e9ecef;
+    min-width: 150px; /* Độ rộng tối thiểu cho mỗi cột */
+  }
+
+  /* Hover & Stripe effects */
+  .custom-table tbody tr:nth-child(even) {
+    background-color: #f8f9fa;
+  }
+
+  .custom-table tbody tr:hover {
+    background-color: #f3f6f9;
+  }
+
+  /* Scrollbar styling */
+  .table-wrapper::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .table-wrapper::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+
+  .table-wrapper::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+  }
+
+  .table-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+
+  /* Status styling */
+  .status-cell {
+    padding: 5px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+    font-weight: 500;
+  }
+
+  .status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+
+  .status-progress {
+    background-color: #cce5ff;
+    color: #004085;
+  }
+
+  .status-completed {
+    background-color: #d4edda;
+    color: #155724;
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="page-content" id="app">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-12">
+        <div
+          class="page-title-box d-sm-flex align-items-center justify-content-between"
+        >
+          <h4 class="mb-sm-0">Nhân sự</h4>
+          <button
+            class="btn btn-primary"
+            data-bs-toggle="modal"
+            data-bs-target="#createSheetModal"
+          >
+            Thêm nhân sự
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title mb-0">Danh sách nhân sự</h5>
+          </div>
+          <div class="card-body">
+            <div v-if="loading" class="loading-spinner">
+              <div class="spinner-border text-primary spin" role="status"></div>
+            </div>
+            <div v-else class="table-wrapper">
+              <table class="table custom-table">
+                <thead>
+                  <tr>
+                    <th>STT</th>
+                    <th>Tên nhân sự</th>
+                    <th>Chat Telegram Id</th>
+                    <th>Quyền</th>
+                    <th>Hành động</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(item, index) in users" :key="index">
+                    <td>{{ ++index }}</td>
+                    <td>{{ item.name }}</td>
+                    <td>
+                      <a href="#" class="btn btn-sm btn-soft-primary">
+                        {{ item.chat_id }}
+                      </a>
+                    </td>
+                    <td>
+                      <span
+                        :class="[
+                            'badge fs-12 d-inline-flex align-items-center', 
+                            item.role == 1 
+                              ? 'bg-success-subtle text-success' 
+                              : 'bg-primary-subtle text-primary'
+                          ]"
+                      >
+                        {{ item.role == 1 ? 'Quản trị viên' : 'Nhân sự' }}
+                      </span>
+                    </td>
+                    <td class="d-flex gap-2">
+                      <button
+                        @click="confirmEdit(item.id)"
+                        class="btn btn-sm btn-outline-primary"
+                        title="Chỉnh sửa"
+                      >
+                        <i class="ri-edit-line"></i>
+                      </button>
+                      <button
+                        @click="confirmDelete(item.id)"
+                        class="btn btn-sm btn-outline-danger"
+                      >
+                        <i class="ri-delete-bin-line"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Modal Chỉnh sửa -->
+  <div
+    class="modal fade"
+    id="editSheetModal"
+    tabindex="-1"
+    aria-labelledby="editSheetModalLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editSheetModalLabel">
+            Chỉnh sửa nhân sự
+          </h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <form @submit.prevent="submitEdit">
+            <div class="row g-3">
+              <div class="col-xxl-12">
+                <label for="editName" class="form-label">Tên nhân sự</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  v-model="edit.name"
+                  placeholder="Tên nhân sự"
+                />
+              </div>
+              <div class="col-sm-6">
+                <label for="editChatId" class="form-label"
+                  >Chat Telegram Id</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  v-model="edit.chat_id"
+                  placeholder="Chat Telegram Id"
+                />
+              </div>
+              <div class="col-sm-6">
+                <label for="editRole" class="form-label">Chọn vai trò</label>
+                <select class="form-control" v-model="edit.role" id="editRole">
+                  <option value="2">Người dùng</option>
+                  <option value="1">Quản trị viên</option>
+                </select>
+              </div>
+              <div class="col-lg-12">
+                <div class="hstack gap-2 justify-content-end">
+                  <button
+                    type="button"
+                    class="btn btn-light"
+                    data-bs-dismiss="modal"
+                  >
+                    Đóng
+                  </button>
+                  <button
+                    type="submit"
+                    :disabled="isLoading"
+                    class="btn btn-primary"
+                  >
+                    <span v-if="isLoading">
+                      <span
+                        class="spinner-border spinner-border-sm loading-sm"
+                      ></span>
+                    </span>
+                    Cập nhật
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Xác nhận xóa</h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+          ></button>
+        </div>
+        <div class="modal-body">Bạn có chắc chắn muốn xóa không?</div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Hủy
+          </button>
+          <button
+            type="button"
+            class="btn btn-danger"
+            @click="deleteItem"
+            :disabled="isLoading"
+          >
+            <span
+              v-if="isLoading"
+              class="spinner-border spinner-border-sm me-1"
+            ></span>
+            Xóa
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="modal fade"
+    id="createSheetModal"
+    tabindex="-1"
+    aria-labelledby="exampleModalgridLabel"
+    aria-modal="true"
+  >
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalgridLabel">
+            Thêm mới nhân sự
+          </h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <form @submit.prevent="submitCreate()">
+            <div class="row g-3">
+              <div class="col-xxl-12">
+                <div>
+                  <label for="firstName" class="form-label">Tên nhân sự</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    v-model="create.name"
+                    placeholder="Tên nhân sự"
+                  />
+                </div>
+              </div>
+              <!--end col-->
+              <div class="col-sm-6">
+                <div>
+                  <label for="lastName" class="form-label"
+                    >Chat Telegram Id</label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    v-model="create.chat_id"
+                    placeholder="Đường dẫn link sheet"
+                  />
+                </div>
+              </div>
+              <div class="col-sm-6">
+                <div>
+                  <label for="role" class="form-label">Chọn vai trò</label>
+                  <select class="form-control" v-model="create.role" id="role">
+                    <option value="2" selected>Người dùng</option>
+                    <option value="1">Quản trị viên</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-lg-12">
+                <div class="hstack gap-2 justify-content-end">
+                  <button
+                    type="button"
+                    class="btn btn-light"
+                    data-bs-dismiss="modal"
+                  >
+                    Đóng
+                  </button>
+                  <button
+                    type="submit"
+                    :disabled="isLoading"
+                    class="btn btn-primary"
+                  >
+                    <span v-if="isLoading">
+                      <span
+                        class="spinner-border spinner-border-sm loading-sm"
+                      ></span>
+                    </span>
+                    Thêm ngay
+                  </button>
+                </div>
+              </div>
+              <!--end col-->
+            </div>
+            <!--end row-->
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block script %}
+<script>
+  const app = Vue.createApp({
+    setup() {
+      const deleteId = Vue.ref(null);
+      const deleteModal = Vue.ref(null);
+      const users = Vue.ref([]);
+      const edit = Vue.ref({
+        id: "",
+        name: "",
+        chat_id: "",
+        role: "2",
+      });
+
+      const create = Vue.ref({
+        name: "",
+        chat_id: "",
+        role: "2",
+      });
+      const loading = Vue.ref(false);
+      const isLoading = Vue.ref(false);
+
+
+      function confirmEdit(id) {
+        const user = users.value.find((user) => user.id === id);
+        if (user) {
+          edit.value = { ...user };
+          const modalElement = document.getElementById("editSheetModal");
+          const modalInstance = new bootstrap.Modal(modalElement);
+          modalInstance.show();
+        }
+      }
+
+      async function submitEdit() {
+      if (!edit.value.name || !edit.value.chat_id) {
+        showToast("Vui lòng nhập đầy đủ thông tin!", "error");
+        return;
+      }
+
+      try {
+        isLoading.value = true;
+        const response = await axios.put(`/api/telegrams/users/${edit.value.id}`, edit.value);
+
+        if (response.data.success) {
+          showToast("Cập nhật thành công!");
+          loadUsers();
+          const modalElement = document.getElementById("editSheetModal");
+          const modalInstance = bootstrap.Modal.getInstance(modalElement);
+          modalInstance.hide();
+        } else {
+          throw new Error(response.data.error || "Lỗi khi cập nhật");
+        }
+      } catch (error) {
+        console.error("Edit error:", error);
+        showToast(error.response?.data?.error || "Có lỗi xảy ra khi chỉnh sửa!", "error");
+      } finally {
+        isLoading.value = false;
+      }
+    }
+
+
+
+      function confirmDelete(id) {
+        deleteId.value = id;
+        deleteModal.value = new bootstrap.Modal(
+          document.getElementById("deleteModal")
+        );
+        deleteModal.value.show();
+      }
+      async function deleteItem() {
+        if (!deleteId.value) return;
+
+        try {
+          isLoading.value = true;
+          const response = await axios.delete(
+            `/api/telegrams/users/${deleteId.value}`
+          );
+
+          if (response.data.success) {
+            showToast("Xóa thành công!");
+            loadUsers();
+            deleteModal.value.hide();
+          } else {
+            throw new Error(response.data.error || "Lỗi khi xóa");
+          }
+        } catch (error) {
+          console.error("Delete error:", error);
+          showToast(
+            error.response?.data?.error || "Có lỗi xảy ra khi xóa!",
+            "error"
+          );
+        } finally {
+          isLoading.value = false;
+          deleteId.value = null;
+        }
+      }
+
+      function showToast(message, type = "success") {
+        Toastify({
+          text: message,
+          duration: 3000,
+          close: true,
+          gravity: "top", // Vị trí hiển thị
+          position: "right",
+          backgroundColor: type === "success" ? "green" : "red",
+        }).showToast();
+      }
+
+      const loadUsers = async () => {
+        try {
+          loading.value = true;
+          const res = await axios.get("/api/telegrams/users");
+          if (res.data?.success) {
+            users.value = res.data?.data;
+          }
+        } catch (e) {
+          console.error("Error loading watch list:", e);
+        } finally {
+          loading.value = false;
+        }
+      };
+
+      function formatDate(date) {
+        return moment(date).fromNow();
+      }
+
+      Vue.onMounted(() => {
+        loadUsers();
+      });
+
+      async function submitCreate() {
+        create.value.name = create.value.name.trim();
+        create.value.chat_id = create.value.chat_id.trim();
+
+        if (!create.value.name || !create.value.chat_id) {
+          showToast("Vui lòng nhập đủ thông tin!", "error");
+          return;
+        }
+        try {
+          isLoading.value = true;
+          const response = await axios.post(
+            "/api/telegrams/users",
+            create.value
+          );
+
+          if (response.data.success) {
+            showToast("Thêm nhân sự thành công!");
+            loadUsers();
+            create.value = { name: "", chat_id: "", role: "2" };
+            const modalElement = document.getElementById("createSheetModal");
+            const modalInstance = bootstrap.Modal.getInstance(modalElement);
+            modalInstance.hide();
+          } else {
+            throw new Error(response.data.error || "Unknown error");
+          }
+        } catch (error) {
+          console.error("Lỗi khi thêm nhân sự:", error);
+          showToast(
+            error.response?.data?.error || "Có lỗi xảy ra khi thêm nhân sự!",
+            "error"
+          );
+        } finally {
+          isLoading.value = false;
+        }
+      }
+
+      return {
+        users,
+        loading,
+        create,
+        edit,
+        confirmEdit,
+        submitEdit,
+        isLoading,
+        submitCreate,
+        confirmDelete,
+        deleteItem,
+        formatDate,
+      };
+    },
+  });
+
+  app.mount("#app");
+</script>
+{% endblock %}
