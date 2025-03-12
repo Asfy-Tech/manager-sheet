@@ -20,7 +20,11 @@ class FileWatcher:
         self._last_check = {}
         self._thread = None
         self._cache = {}
-        self._messages = {}
+        self._messages = {
+            'late': [],
+            'today': [],
+            'future': [],
+        }
         self.init_cache()
 
     def init_cache(self):
@@ -95,7 +99,7 @@ class FileWatcher:
             sheet_updates_needed[sheet_id] = sheet
         success = gg_sheets.update_task(sheet_updates_needed)
         print(f'Status Import: {success}')
-        # bot.send_multiple_tasks(self._messages)
+        bot.send_multiple_tasks(self._messages)
 
 
     def _check_and_send_message(self, sheet_id, sheet):
@@ -118,40 +122,34 @@ class FileWatcher:
         if deadline > two_days_later:
             return
         
-        if deadline == one_day_later:
-            print(f"Task: {sheet_id} lớn hơn hiện tại 1 ngày!")
-        elif deadline == current_date_vn:
-            print(f"Task: {sheet_id} là ngày hiện tại!")
-        else:
-            print(f"Task: {sheet_id} Nhỏ hơn hiện tại!")
-        
-        # data = {
-        #     "category": sheet.get("HẠNG MỤC"),
-        #     "todo": sheet.get("VIỆC CẦN LÀM"),
-        #     "representative": sheet.get("PHỤ TRÁCH"),
-        #     "support": sheet.get("HỖ TRỢ"),
-        #     "status": sheet.get("TRẠNG THÁI"),
-        #     "deadline": deadline,
-        #     "delay": (current_date_vn - deadline).days if deadline else None,
-        # }
+        data = {
+            "category": sheet.get("HẠNG MỤC"),
+            "todo": sheet.get("VIỆC CẦN LÀM"),
+            "representative": sheet.get("PHỤ TRÁCH"),
+            "support": sheet.get("HỖ TRỢ"),
+            "status": sheet.get("TRẠNG THÁI"),
+            "deadline": deadline,
+            "delay": (current_date_vn - deadline).days if deadline else None,
+        }
 
-        # task = TelegramMessage.find_by_task_and_date(sheet_id, current_date_vn)
-        # if task:
-        #     if current_time.hour < 8:
-        #         task.update(**data)
-        # else:
-        #     task = TelegramMessage.create(task_id=sheet_id, send_to=5882159790, **data)
-        
-        # if current_time.hour >= 8 and task.is_seen == False:
-        #     # So sánh deadline với hôm nay
-        #     row = {
-        #         'task': task,
-        #         'sheet': sheet,
-        #     }
-        #     if deadline < current_date_vn:
-        #         self._messages['late'].append(row)
-        #     elif deadline == current_date_vn:
-        #         self._messages['today'].append(row)
+        task = TelegramMessage.find_by_task_and_date(sheet_id, current_date_vn)
+        if task:
+            if current_time.hour < 8:
+                task.update(**data)
+        else:
+            task = TelegramMessage.create(task_id=sheet_id, **data)
+
+        if current_time.hour >= 8 and task.is_seen == False:
+            row = {
+                'task': task,
+                'sheet': sheet,
+            }
+            if deadline == one_day_later:
+                self._messages['future'].append(row)
+            elif deadline == current_date_vn:
+                self._messages['today'].append(row)
+            else:
+                self._messages['late'].append(row)
 
 
     def _check_files(self):
@@ -159,7 +157,11 @@ class FileWatcher:
         gg_sheets = GoogleSheets()
         companies = Companies.get()
         data_sheets = {}
-        self._messages = {}
+        self._messages = {
+            'late': [],
+            'today': [],
+            'future': [],
+        }
         for company in companies:
             try:
                 link = company.sheet_link

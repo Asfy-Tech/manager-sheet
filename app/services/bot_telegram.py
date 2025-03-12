@@ -108,6 +108,11 @@ class BotFather:
             return response.json()
         except requests.exceptions.RequestException as e:
             return {"error": str(e)}
+    def send_multiple_tasks(self, tasks):
+        late = tasks.get('late')
+        today = tasks.get('today')
+        future = tasks.get('future')
+        self.dd(tasks)
 
     def dd(self, data):
         """In ra dữ liệu dưới dạng JSON đẹp"""
