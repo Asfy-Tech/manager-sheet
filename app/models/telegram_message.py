@@ -7,13 +7,14 @@ from app.models.base import BaseModel, db_session
 class TelegramMessage(BaseModel):
     __tablename__ = "telegram_messages"
     
-    __fillable__: List[str] = ["task_id", "category", "todo", "representative", "support", "deadline", "delay","is_seen","send_to"]
+    __fillable__: List[str] = ["task_id", "company", "category","type", "todo", "representative", "support", "deadline", "delay","is_seen","send_to"]
 
     task_id = Column(String(50), nullable=False)
     category = Column(String(150), nullable=False, comment="Hạng mục")
     todo = Column(String(200), unique=True, nullable=False, comment="Việc cần làm")
     representative = Column(String(100), comment="Người phụ trách")
     support = Column(String(100), default=True, comment="Người hỗ trợ")
+    company = Column(String(100), default=True, comment="Công ty")
     status = Column(String(255), nullable=True)
     deadline = Column(DateTime, nullable=True)
     delay = Column(Integer, default=0, nullable=True)

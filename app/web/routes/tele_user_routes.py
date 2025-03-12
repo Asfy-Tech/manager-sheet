@@ -4,8 +4,49 @@ from flask import jsonify, stream_with_context, Response, request
 import json
 from werkzeug.exceptions import NotFound, BadRequest
 from app.models.telegram_users import TelegramUser
+from app.models.telegram_message import TelegramMessage
 from time import sleep
+from sqlalchemy import func
 from config.settings import settings
+import pytz
+from sqlalchemy.orm import sessionmaker
+from app.models.base import engine
+from datetime import datetime
+
+@routes.route("/api/telegrams/messages") 
+def get_tele_message():
+    Session = sessionmaker(bind=engine)
+    db_session = Session()
+    try:
+        params = request.args
+        vietname_tz = pytz.timezone('Asia/Ho_Chi_Minh')
+        today = datetime.now(vietname_tz).date()
+        query = db_session.query(TelegramMessage).filter(
+            func.date(TelegramMessage.created_at) == today
+        )
+        if 'type' in params:
+            if params.get('type'):
+                query = query.filter(TelegramMessage.type == params["type"])
+
+        tasks = query.all()
+
+        tasks = [
+            {
+                **n.to_dict(),  
+                "deadline": n.deadline.strftime('%d-%m-%Y') if n.deadline else None
+            } 
+            for n in tasks
+        ]
+        return jsonify({
+            "success": True,
+            "data": tasks
+        })
+    except Exception as e:
+        app.logger.error(f"Error in watch sheet: {str(e)}")
+        return jsonify({
+            "success": False, 
+            "error": "Internal server error"
+        }), 500
 
 
 @routes.route("/api/telegrams/users", methods=["GET", "POST"]) 

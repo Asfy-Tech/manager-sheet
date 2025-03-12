@@ -5,6 +5,9 @@ from config import settings
 from telegram import Update
 from telegram.ext import Application, CommandHandler, CallbackContext
 import asyncio
+from datetime import datetime
+from telegram.constants import ParseMode
+from app.models.telegram_users import TelegramUser
 
 class BotFather:
     def __init__(self):
@@ -32,7 +35,7 @@ class BotFather:
                     self.send_message(chat_id, f"Your chat ID is: {chat_id}")
         return updates
 
-    def send_message(self, chat_id, text, parse_mode="HTML"):
+    def send_message(self, chat_id, text, parse_mode=ParseMode.MARKDOWN):
         """Gửi tin nhắn đến một chat_id"""
         payload = {
             "chat_id": chat_id,
@@ -109,11 +112,134 @@ class BotFather:
         except requests.exceptions.RequestException as e:
             return {"error": str(e)}
     def send_multiple_tasks(self, tasks):
+        admins = TelegramUser.get(role=1)
         late = tasks.get('late')
         today = tasks.get('today')
         future = tasks.get('future')
-        self.dd(tasks)
+        users = {}
+        for row in late:
+            sheet = row.get('sheet')
+            if not sheet:
+                continue 
+            user_name = sheet.get(settings.TASK_USER)
+            if not user_name:
+                continue  
+            users.setdefault(user_name.strip(), {'late': [], 'today': [], 'future': []})
+            users[user_name.strip()]['late'].append(row)
 
+        for row in today:
+            sheet = row.get('sheet')
+            if not sheet:
+                continue
+            user_name = sheet.get(settings.TASK_USER)
+            if not user_name:
+                continue
+
+            users.setdefault(user_name.strip(), {'late': [], 'today': [], 'future': []})
+            users[user_name.strip()]['today'].append(row)
+
+        for row in future:
+            sheet = row.get('sheet')
+            if not sheet:
+                continue
+            user_name = sheet.get(settings.TASK_USER)
+            if not user_name:
+                continue
+
+            users.setdefault(user_name.strip(), {'late': [], 'today': [], 'future': []})
+            users[user_name.strip()]['future'].append(row)
+
+        for adm in admins:
+            name_trip = adm.name.strip()
+            users.setdefault(name_trip, {'late': [], 'today': [], 'future': []})
+            users[name_trip]['late'] = late
+            users[name_trip]['today'] = today
+            users[name_trip]['future'] = future
+        self._send_message_for_user(users)
+
+    def _send_message_for_user(self, users):
+        mess_ids = set()
+        for user_name, row in users.items():
+            try:
+                user = TelegramUser.first(name=user_name)
+                if not user:
+                    continue
+    
+                late = row.get('late', [])
+                today = row.get('today', [])
+                future = row.get('future', [])
+
+                if not late and not today and not future:
+                    continue
+
+                message = f"⏳ `Anh {user.name} ơi: `\n\n"
+
+                if today:
+                    message += "🔴 *CÔNG VIỆC ĐẾN HẠN HÔM NAY* 🔴\n"
+                    message += "💡 _Anh có những công việc sau cần hoàn thành, chú ý nhé!_\n\n"
+
+                    for i, mess in enumerate(today, 1):
+                        task = mess.get("task")
+                        if task and task.id not in mess_ids:
+                            mess_ids.add(task.id)
+                            task.update(is_seen=True)
+
+                        message += f"📌 *Công việc {i}:*\n"
+                        message += f"    *Người phụ trách:* `{task.representative}`\n"
+                        message += f"    *Công ty:* `{task.company}`\n"
+                        message += f"    *Việc cần làm:* `{task.todo}`\n"
+                        message += f"    *Hạng mục:* `{task.category}`\n"
+                        if task.support:
+                            message += f"    *Hỗ trợ:* `{task.support}`\n"
+                        message += f"    *Deadline:* `{task.deadline.strftime('%d-%m-%Y')}`\n\n"
+
+                if late:
+                    message += "⚠️ *CÔNG VIỆC QUÁ HẠN* ⚠️\n"
+                    message += "🚨 _Một số công việc đã trễ Deadline, cần xử lý gấp!_\n\n"
+
+                    for i, mess in enumerate(late, 1):
+                        task = mess.get("task")
+                        if task and task.id not in mess_ids:
+                            mess_ids.add(task.id)
+                            task.update(is_seen=True)
+
+                        message += f"❌ *Công việc trễ {i}:*\n"
+                        message += f"    *Người phụ trách:* `{task.representative}`\n"
+                        message += f"    *Công ty:* `{task.company}`\n"
+                        message += f"    *Việc cần làm:* `{task.todo}`\n"
+                        message += f"    *Hạng mục:* `{task.category}`\n"
+                        if task.support:
+                            message += f"    *Hỗ trợ:* `{task.support}`\n"
+                        message += f"    *Deadline:* `{task.deadline.strftime('%d-%m-%Y')}`\n"
+                        message += f"    *Trễ:* `{task.delay} ngày`\n\n"
+
+                if future:
+                    message += "🟢 *CÔNG VIỆC SẮP TỚI DEADLINE* 🟢\n"
+                    message += "📆 _Những công việc dưới đây sắp đến hạn, anh chuẩn bị trước nhé!_\n\n"
+
+                    for i, mess in enumerate(future, 1):
+                        task = mess.get("task")
+                        if task and task.id not in mess_ids:
+                            mess_ids.add(task.id)
+                            task.update(is_seen=True)
+
+                        message += f"🔜 *Công việc {i}:*\n"
+                        message += f"    *Người phụ trách:* `{task.representative}`\n"
+                        message += f"    *Công ty:* `{task.company}`\n"
+                        message += f"    *Việc cần làm:* `{task.todo}`\n"
+                        message += f"    *Hạng mục:* `{task.category}`\n"
+                        if task.support:
+                            message += f"    *Hỗ trợ:* `{task.support}`\n"
+                        message += f"    *Deadline:* `{task.deadline.strftime('%d-%m-%Y')}`\n\n"
+
+
+                chat_id = user.chat_id
+                res = self.send_message(chat_id, message)
+                if 'ok' in res:
+                    print(f"Gửi tin nhắn thành công: message_id {res['result']['message_id']}")
+            except Exception as e:
+                print(f'Lỗi khi gửi tin nhắn: {e}')
+             
     def dd(self, data):
         """In ra dữ liệu dưới dạng JSON đẹp"""
         print(json.dumps(data, indent=4, ensure_ascii=False))

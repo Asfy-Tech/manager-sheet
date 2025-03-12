@@ -104,7 +104,11 @@ class FileWatcher:
 
     def _check_and_send_message(self, sheet_id, sheet):
         deadline_str = sheet.get(settings.TASK_DEADLINE)
-        if not deadline_str:
+        status_str = sheet.get(settings.TASK_STATUS)
+        if not deadline_str or not status_str:
+            return
+        
+        if status_str == settings.TASK_STATUS_SUCCESS:
             return
         
         try:
@@ -121,16 +125,24 @@ class FileWatcher:
 
         if deadline > two_days_later:
             return
-        
+
         data = {
             "category": sheet.get("HẠNG MỤC"),
             "todo": sheet.get("VIỆC CẦN LÀM"),
             "representative": sheet.get("PHỤ TRÁCH"),
+            "company": sheet.get("CÔNG TY"),
             "support": sheet.get("HỖ TRỢ"),
             "status": sheet.get("TRẠNG THÁI"),
             "deadline": deadline,
             "delay": (current_date_vn - deadline).days if deadline else None,
         }
+    
+        if deadline == one_day_later:
+            data['type'] = 3
+        elif deadline == current_date_vn:
+            data['type'] = 2
+        else:
+            data['type'] = 1
 
         task = TelegramMessage.find_by_task_and_date(sheet_id, current_date_vn)
         if task:
@@ -183,6 +195,7 @@ class FileWatcher:
                 print(f"\n📊 Processing {company.name}...")
                 for dt in data:
                     if dt.get(settings.TASK_ID):
+                        dt['CÔNG TY'] = company.name
                         data_sheets[dt.get(settings.TASK_ID)] = dt
 
             except Exception as e:

@@ -82,10 +82,10 @@ def create_app():
             "error": str(error)
         }), 400
         
-    @app.before_request
-    def before_request():
-        # Add request logging
-        app.logger.info(f"Request: {request.method} {request.url}")
+    # @app.before_request
+    # def before_request():
+    #     # Add request logging
+    #     app.logger.info(f"Request: {request.method} {request.url}")
     
     return app
 

@@ -4,11 +4,12 @@
         "HẠNG MỤC": "Thiết kế bổ sung nhận diện cửa hàng",
         "VIỆC CẦN LÀM": "Hộp đèn hình bánh mì khổng lồ ở tầng 2",
         "YÊU CẦU CÔNG VIỆC": "",
-        "PHỤ TRÁCH": "Thành - MKT",
+        "PHỤ TRÁCH": "HUNGPV_MKT",
         "HỖ TRỢ": "",
         "TRẠNG THÁI": "Đang thực hiện",
         "START": "",
-        "DEADLINE": "06/03/2025"
+        "DEADLINE": "06/03/2025",
+        "CÔNG TY": "Sơn Hùng MTP"
     },
     "TASK_2d0357b7": {
         "TASK_ID": "TASK_2d0357b7",
@@ -17,7 +18,8 @@
         "YÊU CẦU CÔNG VIỆC": "",
         "PHỤ TRÁCH": "Thành - MKT",
         "HỖ TRỢ": "",
-        "TRẠNG THÁI": "Chưa bắt đầu"
+        "TRẠNG THÁI": "Chưa bắt đầu",
+        "CÔNG TY": "Sơn Hùng MTP"
     },
     "TASK_4f0e00e6": {
         "TASK_ID": "TASK_4f0e00e6",
@@ -28,20 +30,22 @@
         "HỖ TRỢ": "",
         "TRẠNG THÁI": "Tạm hoãn",
         "START": "",
-        "DEADLINE": "30/03/2025"
+        "DEADLINE": "30/03/2025",
+        "CÔNG TY": "Sơn Hùng MTP"
     },
     "TASK_e666a28c": {
         "TASK_ID": "TASK_e666a28c",
         "HẠNG MỤC": "Thiết kế các ấn phẩm của Marketing",
-        "VIỆC CẦN LÀM": "Bỏ quên thế giới, một chiếc áo mới, ngồi chơi em tới, hehehe",
+        "VIỆC CẦN LÀM": "Thiết kế đồ cổ asfytech",
         "YÊU CẦU CÔNG VIỆC": "",
-        "PHỤ TRÁCH": "Thành - MKT",
-        "HỖ TRỢ": "",
-        "TRẠNG THÁI": "Ðã hoàn thành",
+        "PHỤ TRÁCH": "HUNGPV_MKT",
+        "HỖ TRỢ": "Hưng - MKT",
+        "TRẠNG THÁI": "Chưa bắt đầu",
         "START": "",
-        "DEADLINE": "",
+        "DEADLINE": "07/03/2025",
         "THÀNH PHẨM": "",
-        "DUYỆT": "FALSE"
+        "DUYỆT": "FALSE",
+        "CÔNG TY": "Sơn Hùng MTP"
     },
     "TASK_b001a7de": {
         "TASK_ID": "TASK_b001a7de",
@@ -50,7 +54,8 @@
         "YÊU CẦU CÔNG VIỆC": "",
         "PHỤ TRÁCH": "",
         "HỖ TRỢ": "",
-        "TRẠNG THÁI": "Đang thực hiện"
+        "TRẠNG THÁI": "Đang thực hiện",
+        "CÔNG TY": "Sơn Hùng MTP"
     },
     "TASK_90f8f405": {
         "TASK_ID": "TASK_90f8f405",
@@ -58,19 +63,21 @@
         "VIỆC CẦN LÀM": "Lập kênh",
         "YÊU CẦU CÔNG VIỆC": "",
         "PHỤ TRÁCH": "Phương Anh - MKT",
-        "HỖ TRỢ": "",
-        "TRẠNG THÁI": "Chưa bắt đầu"
+        "HỖ TRỢ": "Hưng - MKT",
+        "TRẠNG THÁI": "Chưa bắt đầu",
+        "CÔNG TY": "Sơn Hùng MTP"
     },
     "TASK_79a6fb84": {
         "TASK_ID": "TASK_79a6fb84",
         "HẠNG MỤC": "TikTok",
         "VIỆC CẦN LÀM": "Sản xuất nội dung OKOK",
         "YÊU CẦU CÔNG VIỆC": "Quay các content liên quan quá trình làm bánh, đóng gói, dịch vụ…",
-        "PHỤ TRÁCH": "Phương Anh - MKT - 123321321",
+        "PHỤ TRÁCH": "Phương Anh - MKT ",
         "HỖ TRỢ": "",
         "TRẠNG THÁI": "Đang thực hiện",
         "START": "",
-        "DEADLINE": "12/03/2025"
+        "DEADLINE": "12/03/2025",
+        "CÔNG TY": "Sơn Hùng MTP"
     },
     "TASK_72e3aeb9": {
         "TASK_ID": "TASK_72e3aeb9",
@@ -81,7 +88,8 @@
         "HỖ TRỢ": "",
         "TRẠNG THÁI": "Đang thực hiện",
         "START": "",
-        "DEADLINE": "13/03/2025"
+        "DEADLINE": "13/03/2025",
+        "CÔNG TY": "Sơn Hùng MTP"
     },
     "TASK_131158c9": {
         "TASK_ID": "TASK_131158c9",
@@ -90,7 +98,8 @@
         "YÊU CẦU CÔNG VIỆC": "Gửi mail nội bộ gồm hình ảnh để CBNV Bolt review và check in",
         "PHỤ TRÁCH": "Phương Anh - MKT",
         "HỖ TRỢ": "",
-        "TRẠNG THÁI": "Chưa bắt đầu"
+        "TRẠNG THÁI": "Chưa bắt đầu",
+        "CÔNG TY": "Sơn Hùng MTP"
     },
     "TASK_8f25a489": {
         "TASK_ID": "TASK_8f25a489",
@@ -101,7 +110,8 @@
         "HỖ TRỢ": "",
         "TRẠNG THÁI": "Tạm hoãn",
         "START": "",
-        "DEADLINE": "18/03/2025"
+        "DEADLINE": "18/03/2025",
+        "CÔNG TY": "Sơn Hùng MTP"
     },
     "TASK_507be7c1": {
         "TASK_ID": "TASK_507be7c1",
@@ -110,7 +120,8 @@
         "YÊU CẦU CÔNG VIỆC": "Trên các hôi nhóm F&B&H",
         "PHỤ TRÁCH": "Ninh Loan",
         "HỖ TRỢ": "",
-        "TRẠNG THÁI": "Chưa bắt đầu"
+        "TRẠNG THÁI": "Chưa bắt đầu",
+        "CÔNG TY": "Sơn Hùng MTP"
     },
     "TASK_6e1b1ff8": {
         "TASK_ID": "TASK_6e1b1ff8",
@@ -119,7 +130,8 @@
         "YÊU CẦU CÔNG VIỆC": "Ăn bánh check in giảm 10%",
         "PHỤ TRÁCH": "Ninh Loan",
         "HỖ TRỢ": "",
-        "TRẠNG THÁI": "Ðã hoàn thành"
+        "TRẠNG THÁI": "Đang thực hiện",
+        "CÔNG TY": "Sơn Hùng MTP"
     },
     "TASK_936b7c92": {
         "TASK_ID": "TASK_936b7c92",
@@ -128,6 +140,7 @@
         "YÊU CẦU CÔNG VIỆC": "Thử thách ăn 3 bánh bự chảng trong 15p được nhận 1.000.000. Nếu không hết sẽ trả tiền bánh là 200.000",
         "PHỤ TRÁCH": "Phương Anh - MKT",
         "HỖ TRỢ": "",
-        "TRẠNG THÁI": "Ðã hoàn thành"
+        "TRẠNG THÁI": "Tạm hoãn",
+        "CÔNG TY": "Sơn Hùng MTP"
     }
 }
