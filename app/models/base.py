@@ -79,6 +79,17 @@ class BaseModel(Base):
         except:
             db_session.rollback()
             return False
+    
+    @classmethod
+    def delete_all(cls) -> bool:
+        """Xóa toàn bộ dữ liệu trong bảng."""
+        try:
+            db_session.query(cls).delete()
+            db_session.commit()
+            return True
+        except:
+            db_session.rollback()
+            return False
         
     def save(self):
         """Lưu thay đổi vào database."""

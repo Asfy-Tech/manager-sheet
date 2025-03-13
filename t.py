@@ -6,6 +6,7 @@ watcher._check_files()
 # from app.models.telegram_message import TelegramMessage
 # from app.models.telegram_users import TelegramUser
 # from app.models.users import User
+# from app.models.companies import Companies
 # from config import hash_password
 # from datetime import datetime
 # Base.metadata.create_all(engine)

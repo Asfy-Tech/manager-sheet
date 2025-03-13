@@ -147,6 +147,7 @@ block style %}
                     <th>Tên công ty</th>
                     <th>Sheet Link</th>
                     <th>Trạng thái</th>
+                    <th>Lần truy cập cuối</th>
                     <th>Hành động</th>
                   </tr>
                 </thead>
@@ -176,6 +177,7 @@ block style %}
                         {{ item.status === 'active' ? 'Đang hoạt động' : 'Không thể đọc dữ liệu' }}
                       </span>
                     </td>
+                    <td>{{ formatDate(item.last_active) }}</td>
                     <td class="d-flex gap-2">
                       <a :href="item.sheet_link" 
                          target="_blank" 

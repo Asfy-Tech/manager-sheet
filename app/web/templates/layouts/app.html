@@ -323,9 +323,7 @@
                           </h6>
                         </div>
                         <div class="col-auto dropdown-tabs">
-                          <span class="badge bg-light-subtle text-body fs-13">
-                            {{ unreadCount }} New</span
-                          >
+                          <button :disabled="isLoadingRemove" @click="handleRemoveNoti" class="btn bg-light-subtle text-body fs-13">Dọn dẹp</button>
                         </div>
                       </div>
                     </div>
@@ -402,7 +400,7 @@
                           </div>
                         </div>
 
-                        <div class="my-3 text-center view-all">
+                        <!-- <div class="my-3 text-center view-all">
                           <button
                             type="button"
                             class="btn btn-soft-success waves-effect waves-light"
@@ -410,7 +408,7 @@
                             Xem tất cả
                             <i class="ri-arrow-right-line align-middle"></i>
                           </button>
-                        </div>
+                        </div> -->
                       </div>
                     </div>
                     <!-- <div class="tab-pane fade show active p-4" id="alerts-tab" role="tabpanel" aria-labelledby="alerts-tab"></div> -->
@@ -685,6 +683,7 @@
       const appnotifi = Vue.createApp({
         setup() {
           const user = Vue.ref({});
+          const isLoadingRemove = Vue.ref(false);
           const notifications = Vue.ref([]);
           const unreadCount = Vue.ref(0);
 
@@ -703,13 +702,25 @@
           };
 
           function formatTime(time) {
-            return time;
+            return moment(time).fromNow();
           }
 
           Vue.onMounted(() => {
             fetchNotifications();
             user.value = JSON.parse(localStorage.getItem('user'))
           });
+
+          const handleRemoveNoti = async () => {
+            isLoadingRemove.value = true
+            try {
+              const response = await axios.delete("/api/notifications");
+              await fetchNotifications()
+            } catch (error) {
+              console.error("Lỗi khi logout:", error);
+            }finally{
+              isLoadingRemove.value = false
+            }
+          };
 
           const logout = async () => {
             try {
@@ -732,7 +743,7 @@
             window.location.href = "/login";
           };
 
-          return { notifications, user, unreadCount, formatTime, logout };
+          return { notifications, isLoadingRemove, handleRemoveNoti, user, unreadCount, formatTime, logout };
         },
       });
 

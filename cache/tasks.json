@@ -9,7 +9,7 @@
         "TRẠNG THÁI": "Đang thực hiện",
         "START": "",
         "DEADLINE": "06/03/2025",
-        "CÔNG TY": "Sơn Hùng MTP"
+        "CÔNG TY": "Add Today CT"
     },
     "TASK_2d0357b7": {
         "TASK_ID": "TASK_2d0357b7",
@@ -19,7 +19,7 @@
         "PHỤ TRÁCH": "Thành - MKT",
         "HỖ TRỢ": "",
         "TRẠNG THÁI": "Chưa bắt đầu",
-        "CÔNG TY": "Sơn Hùng MTP"
+        "CÔNG TY": "Add Today CT"
     },
     "TASK_4f0e00e6": {
         "TASK_ID": "TASK_4f0e00e6",
@@ -31,7 +31,7 @@
         "TRẠNG THÁI": "Tạm hoãn",
         "START": "",
         "DEADLINE": "30/03/2025",
-        "CÔNG TY": "Sơn Hùng MTP"
+        "CÔNG TY": "Add Today CT"
     },
     "TASK_e666a28c": {
         "TASK_ID": "TASK_e666a28c",
@@ -45,7 +45,7 @@
         "DEADLINE": "07/03/2025",
         "THÀNH PHẨM": "",
         "DUYỆT": "FALSE",
-        "CÔNG TY": "Sơn Hùng MTP"
+        "CÔNG TY": "Add Today CT"
     },
     "TASK_b001a7de": {
         "TASK_ID": "TASK_b001a7de",
@@ -55,7 +55,7 @@
         "PHỤ TRÁCH": "",
         "HỖ TRỢ": "",
         "TRẠNG THÁI": "Đang thực hiện",
-        "CÔNG TY": "Sơn Hùng MTP"
+        "CÔNG TY": "Add Today CT"
     },
     "TASK_90f8f405": {
         "TASK_ID": "TASK_90f8f405",
@@ -65,7 +65,7 @@
         "PHỤ TRÁCH": "Phương Anh - MKT",
         "HỖ TRỢ": "Hưng - MKT",
         "TRẠNG THÁI": "Chưa bắt đầu",
-        "CÔNG TY": "Sơn Hùng MTP"
+        "CÔNG TY": "Add Today CT"
     },
     "TASK_79a6fb84": {
         "TASK_ID": "TASK_79a6fb84",
@@ -77,7 +77,7 @@
         "TRẠNG THÁI": "Đang thực hiện",
         "START": "",
         "DEADLINE": "12/03/2025",
-        "CÔNG TY": "Sơn Hùng MTP"
+        "CÔNG TY": "Add Today CT"
     },
     "TASK_72e3aeb9": {
         "TASK_ID": "TASK_72e3aeb9",
@@ -89,7 +89,7 @@
         "TRẠNG THÁI": "Đang thực hiện",
         "START": "",
         "DEADLINE": "13/03/2025",
-        "CÔNG TY": "Sơn Hùng MTP"
+        "CÔNG TY": "Add Today CT"
     },
     "TASK_131158c9": {
         "TASK_ID": "TASK_131158c9",
@@ -99,7 +99,7 @@
         "PHỤ TRÁCH": "Phương Anh - MKT",
         "HỖ TRỢ": "",
         "TRẠNG THÁI": "Chưa bắt đầu",
-        "CÔNG TY": "Sơn Hùng MTP"
+        "CÔNG TY": "Add Today CT"
     },
     "TASK_8f25a489": {
         "TASK_ID": "TASK_8f25a489",
@@ -110,8 +110,8 @@
         "HỖ TRỢ": "",
         "TRẠNG THÁI": "Tạm hoãn",
         "START": "",
-        "DEADLINE": "18/03/2025",
-        "CÔNG TY": "Sơn Hùng MTP"
+        "DEADLINE": "14/03/2025",
+        "CÔNG TY": "Add Today CT"
     },
     "TASK_507be7c1": {
         "TASK_ID": "TASK_507be7c1",
@@ -121,7 +121,7 @@
         "PHỤ TRÁCH": "Ninh Loan",
         "HỖ TRỢ": "",
         "TRẠNG THÁI": "Chưa bắt đầu",
-        "CÔNG TY": "Sơn Hùng MTP"
+        "CÔNG TY": "Add Today CT"
     },
     "TASK_6e1b1ff8": {
         "TASK_ID": "TASK_6e1b1ff8",
@@ -131,7 +131,7 @@
         "PHỤ TRÁCH": "Ninh Loan",
         "HỖ TRỢ": "",
         "TRẠNG THÁI": "Đang thực hiện",
-        "CÔNG TY": "Sơn Hùng MTP"
+        "CÔNG TY": "Add Today CT"
     },
     "TASK_936b7c92": {
         "TASK_ID": "TASK_936b7c92",
@@ -141,6 +141,6 @@
         "PHỤ TRÁCH": "Phương Anh - MKT",
         "HỖ TRỢ": "",
         "TRẠNG THÁI": "Tạm hoãn",
-        "CÔNG TY": "Sơn Hùng MTP"
+        "CÔNG TY": "Add Today CT"
     }
 }

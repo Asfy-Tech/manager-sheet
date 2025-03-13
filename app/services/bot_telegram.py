@@ -8,6 +8,8 @@ import asyncio
 from datetime import datetime
 from telegram.constants import ParseMode
 from app.models.telegram_users import TelegramUser
+from app.models.notifications import Notification
+
 
 class BotFather:
     def __init__(self):
@@ -163,6 +165,10 @@ class BotFather:
             try:
                 user = TelegramUser.first(name=user_name)
                 if not user:
+                    Notification.create(
+                        title=user_name,
+                        content="Tài khoản không tồn tại trên hệ thông!"
+                    )
                     continue
     
                 late = row.get('late', [])
@@ -237,6 +243,11 @@ class BotFather:
                 res = self.send_message(chat_id, message)
                 if 'ok' in res:
                     print(f"Gửi tin nhắn thành công: message_id {res['result']['message_id']}")
+                else:
+                    Notification.create(
+                        title=user_name,
+                        content="Không gửi được tin nhắn!"
+                    )
             except Exception as e:
                 print(f'Lỗi khi gửi tin nhắn: {e}')
              

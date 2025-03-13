@@ -20,6 +20,7 @@ class FileWatcher:
         self._last_check = {}
         self._thread = None
         self._cache = {}
+        self._cache_city = []
         self._messages = {
             'late': [],
             'today': [],
@@ -167,7 +168,7 @@ class FileWatcher:
     def _check_files(self):
         """Giả lập kiểm tra file"""
         gg_sheets = GoogleSheets()
-        companies = Companies.get()
+        companies = Companies.get_sorted_by_last_active()
         data_sheets = {}
         self._messages = {
             'late': [],
@@ -197,12 +198,17 @@ class FileWatcher:
                     if dt.get(settings.TASK_ID):
                         dt['CÔNG TY'] = company.name
                         data_sheets[dt.get(settings.TASK_ID)] = dt
-
+                company.last_active = datetime.now(vn_timezone)
+                company.save()
+                if company.id in self._cache_city:
+                    self._cache_city.remove(company.id)
             except Exception as e:
-                Notification.create(
-                    title=f"Công ty: {company.name}",
-                    content=e
-                )
+                if company.id not in self._cache_city:
+                    self._cache_city.append(company.id)
+                    Notification.create(
+                        title=f"Công ty: {company.name}",
+                        content=e
+                    )
                 print(f"Lỗi khi đọc công ty: {company.name}",e)
         self._process_sheet_tasks(data_sheets)
 

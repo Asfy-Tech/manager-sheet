@@ -10,3 +10,7 @@ class Notification(BaseModel):
     title = Column(String(255), nullable=False)
     content = Column(Text, nullable=False)
     is_read = Column(Boolean, default=False)
+
+    @classmethod
+    def get_sorted_by_created_at(cls):
+        return db_session.query(cls).order_by(cls.created_at.desc()).all()

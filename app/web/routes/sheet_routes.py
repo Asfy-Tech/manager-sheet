@@ -36,7 +36,13 @@ def get_watch_sheet():
         db = Companies()
         if request.method == 'GET':
             paths = db.get()
-            paths = [n.to_dict() for n in paths]
+            paths = [
+                {
+                    **n.to_dict(),  
+                    "last_active": n.last_active.strftime('%Y-%m-%d %H:%M:%S') if n.last_active else None
+                } 
+                for n in paths
+            ]
             return jsonify({
                 "success": True,
                 "data": paths
