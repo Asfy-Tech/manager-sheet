@@ -5,7 +5,7 @@ from pathlib import Path
 from config.settings import settings
 import os
 import json
-from app.services.bot_telegram import bot
+from app.services.bot_telegram import BotFather
 from app.models.companies import Companies
 from app.models.tasks import Task
 from app.models.notifications import Notification
@@ -30,17 +30,34 @@ class FileWatcher:
 
     def init_cache(self):
         """Đọc nội dung từ file cache/tasks.json và xử lý lỗi"""
+        file_path = 'cache/tasks.json'
+        # Đảm bảo thư mục cache tồn tại
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
         try:
-            if os.path.exists('cache/tasks.json'):
-                with open('cache/tasks.json', 'r', encoding='utf-8') as f:
+            if os.path.exists(file_path):
+                with open(file_path, 'r', encoding='utf-8') as f:
                     try:
-                        self._cache = json.load(f) 
+                        self._cache = json.load(f)
                     except json.JSONDecodeError:
-                        print("Lỗi định dạng JSON trong file 'cache/tasks.json'")
+                        print("Lỗi định dạng JSON trong file, tạo file mới...")
+                        self.create_default_cache(file_path)
             else:
-                print("File 'cache/tasks.json' không tồn tại.")
+                print("File không tồn tại, tạo file mới...")
+                self.create_default_cache(file_path)
         except Exception as e:
             print(f"Đã xảy ra lỗi khi đọc file: {e}")
+            self.create_default_cache(file_path)
+
+    def create_default_cache(self, file_path):
+        """Tạo file cache/tasks.json với nội dung mặc định là {}"""
+        try:
+            with open(file_path, 'w', encoding='utf-8') as f:
+                json.dump({}, f, indent=4, ensure_ascii=False)
+            print("Tạo file 'cache/tasks.json' thành công!")
+        except Exception as e:
+            print(f"Lỗi khi tạo file: {e}")
+
 
     def _get_file_info(self, path: Path) -> dict:
         stats = path.stat()
@@ -100,6 +117,7 @@ class FileWatcher:
             sheet_updates_needed[sheet_id] = sheet
         success = gg_sheets.update_task(sheet_updates_needed)
         print(f'Status Import: {success}')
+        bot = BotFather()
         bot.send_multiple_tasks(self._messages)
 
 
@@ -198,8 +216,8 @@ class FileWatcher:
                     if dt.get(settings.TASK_ID):
                         dt['CÔNG TY'] = company.name
                         data_sheets[dt.get(settings.TASK_ID)] = dt
-                company.last_active = datetime.now(vn_timezone)
-                company.save()
+                company.update(last_active=datetime.now(vn_timezone))
+                print(f'Lần truy cập cuối: {company.name} - {datetime.now(vn_timezone)}')
                 if company.id in self._cache_city:
                     self._cache_city.remove(company.id)
             except Exception as e:
@@ -227,6 +245,7 @@ class FileWatcher:
                     time.sleep(1)
         self._thread = threading.Thread(target=run, daemon=True)
         self._thread.start()
+        self._thread.join()
 
     def stop(self):
         """Dừng quá trình theo dõi file"""

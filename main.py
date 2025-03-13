@@ -2,7 +2,6 @@ from flask import Flask, render_template, jsonify, request
 from app.web.routes import routes, guests
 from app.monitors.file_watcher import FileWatcher
 from config.settings import settings
-from app.services.bot_telegram import run_bot_in_thread
 import logging
 from logging.handlers import RotatingFileHandler
 import os
@@ -89,20 +88,7 @@ def create_app():
     
     return app
 
-def main():
-    app = create_app()
-
-    if os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
-        run_bot_in_thread()
-    #     watcher = FileWatcher(interval=settings.SYNC_INTERVAL)
-    #     watcher.start()
-    
-
-    try:
-        app.run(debug=True, use_reloader=True)
-    finally:
-        pass
-        # watcher.stop()
+app = create_app()
 
 if __name__ == "__main__":
-    main()
+    app.run(debug=True, use_reloader=True)

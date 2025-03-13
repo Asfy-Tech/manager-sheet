@@ -153,9 +153,10 @@ class BotFather:
 
         for adm in admins:
             name_trip = adm.name.strip()
-            users.setdefault(name_trip, {'late': [], 'today': [], 'future': []})
+            users.setdefault(name_trip, {'is_admin': True, 'late': [], 'today': [], 'future': []})
             users[name_trip]['late'] = late
             users[name_trip]['today'] = today
+            users[name_trip]['is_admin'] = True
             users[name_trip]['future'] = future
         self._send_message_for_user(users)
 
@@ -178,7 +179,11 @@ class BotFather:
                 if not late and not today and not future:
                     continue
 
+                is_admin = False
+                if 'is_admin' in row and row.get('is_admin'):
+                    is_admin = True
                 message = f"⏳ `Anh {user.name} ơi: `\n\n"
+
 
                 if today:
                     message += "🔴 *CÔNG VIỆC ĐẾN HẠN HÔM NAY* 🔴\n"
@@ -191,13 +196,14 @@ class BotFather:
                             task.update(is_seen=True)
 
                         message += f"📌 *Công việc {i}:*\n"
-                        message += f"    *Người phụ trách:* `{task.representative}`\n"
-                        message += f"    *Công ty:* `{task.company}`\n"
-                        message += f"    *Việc cần làm:* `{task.todo}`\n"
-                        message += f"    *Hạng mục:* `{task.category}`\n"
+                        if is_admin:
+                            message += f"    *Người phụ trách:* `{task.representative}`\n"
+                        message += f"    *Công ty:* {task.company}\n"
+                        message += f"    *Việc cần làm:* {task.todo}\n"
+                        message += f"    *Hạng mục:* {task.category}\n"
                         if task.support:
-                            message += f"    *Hỗ trợ:* `{task.support}`\n"
-                        message += f"    *Deadline:* `{task.deadline.strftime('%d-%m-%Y')}`\n\n"
+                            message += f"    *Hỗ trợ:* {task.support}\n"
+                        message += f"    *Deadline:* {task.deadline.strftime('%d-%m-%Y')}\n\n"
 
                 if late:
                     message += "⚠️ *CÔNG VIỆC QUÁ HẠN* ⚠️\n"
@@ -210,14 +216,15 @@ class BotFather:
                             task.update(is_seen=True)
 
                         message += f"❌ *Công việc trễ {i}:*\n"
-                        message += f"    *Người phụ trách:* `{task.representative}`\n"
-                        message += f"    *Công ty:* `{task.company}`\n"
-                        message += f"    *Việc cần làm:* `{task.todo}`\n"
-                        message += f"    *Hạng mục:* `{task.category}`\n"
+                        if is_admin:
+                            message += f"    *Người phụ trách:* `{task.representative}`\n"
+                        message += f"    *Công ty:* {task.company}\n"
+                        message += f"    *Việc cần làm:* {task.todo}\n"
+                        message += f"    *Hạng mục:* {task.category}\n"
                         if task.support:
-                            message += f"    *Hỗ trợ:* `{task.support}`\n"
-                        message += f"    *Deadline:* `{task.deadline.strftime('%d-%m-%Y')}`\n"
-                        message += f"    *Trễ:* `{task.delay} ngày`\n\n"
+                            message += f"    *Hỗ trợ:* {task.support}\n"
+                        message += f"    *Deadline:* {task.deadline.strftime('%d-%m-%Y')}\n"
+                        message += f"    *Trễ:* {task.delay} ngày\n\n"
 
                 if future:
                     message += "🟢 *CÔNG VIỆC SẮP TỚI DEADLINE* 🟢\n"
@@ -230,17 +237,19 @@ class BotFather:
                             task.update(is_seen=True)
 
                         message += f"🔜 *Công việc {i}:*\n"
-                        message += f"    *Người phụ trách:* `{task.representative}`\n"
-                        message += f"    *Công ty:* `{task.company}`\n"
-                        message += f"    *Việc cần làm:* `{task.todo}`\n"
-                        message += f"    *Hạng mục:* `{task.category}`\n"
+                        if is_admin:
+                            message += f"    *Người phụ trách:* `{task.representative}`\n"
+                        message += f"    *Công ty:* {task.company}\n"
+                        message += f"    *Việc cần làm:* {task.todo}\n"
+                        message += f"    *Hạng mục:* {task.category}\n"
                         if task.support:
-                            message += f"    *Hỗ trợ:* `{task.support}`\n"
-                        message += f"    *Deadline:* `{task.deadline.strftime('%d-%m-%Y')}`\n\n"
+                            message += f"    *Hỗ trợ:* {task.support}\n"
+                        message += f"    *Deadline:* {task.deadline.strftime('%d-%m-%Y')}\n\n"
 
 
                 chat_id = user.chat_id
                 res = self.send_message(chat_id, message)
+                # resT = self.send_message('5670894265', message)
                 if 'ok' in res:
                     print(f"Gửi tin nhắn thành công: message_id {res['result']['message_id']}")
                 else:
@@ -262,21 +271,23 @@ class BotFather:
         await update.message.reply_text(f"Your chat ID is: {chat_id}")
 
     def start_bot(self):
-        """Khởi động bot và thêm CommandHandler"""
-        # Sử dụng Application 
-        application = Application.builder().token(self.token).build()
+        try:
+            """Khởi động bot và thêm CommandHandler"""
+            # Sử dụng Application 
+            application = Application.builder().token(self.token).build()
 
-        # Thêm handler cho lệnh /myid
-        application.add_handler(CommandHandler("myid", self.my_id))
+            # Thêm handler cho lệnh /myid
+            application.add_handler(CommandHandler("myid", self.my_id))
 
-        # Tạo event loop cho thread hiện tại
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        
-        # Bắt đầu bot
-        application.run_polling()
+            # Tạo event loop cho thread hiện tại
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
+            # Bắt đầu bot
+            application.run_polling(drop_pending_updates=True)
+        except Exception as e:
+            print(f'Lỗi chạy bot: {e}')
 
-bot = BotFather()
 def run_bot_in_thread():
     bot_instance = BotFather()
     """Chạy bot Telegram trong một thread riêng biệt"""

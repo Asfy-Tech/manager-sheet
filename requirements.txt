@@ -10,3 +10,6 @@ sqlalchemy
 pymysql
 pyjwt
 bcrypt
+pytz
+python-telegram-bot
+gunicorn

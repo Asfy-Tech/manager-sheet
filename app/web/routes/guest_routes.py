@@ -24,6 +24,19 @@ def login():
 
     return render_template("auth/login.html")
 
+# @guests.route("/users/register", methods=["GET"])
+# def register():
+#     User.create(
+#         name="Phạm Văn Hùng",
+#         email="supperment",
+#         password=hash_password("hungpv"),
+#         role="admin",
+#         status=True,
+#         avatar="https://thumbs.dreamstime.com/b/default-avatar-profile-icon-social-media-user-vector-image-icon-default-avatar-profile-icon-social-media-user-vector-image-209162840.jpg",
+#         last_login=datetime.utcnow()
+#     )
+#     return render_template("auth/login.html")
+
 @guests.route("/api/login", methods=["POST"])
 def login_api():
     if not request.is_json:

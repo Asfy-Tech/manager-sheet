@@ -1,6 +1,6 @@
-{% extends "layouts/app.html" %} {% block title %}Pages{% endblock %} 
-{% block style %}
-<style>
+{% extends "layouts/app.html" %} {% block title %}Pages{% endblock %} {% block
+style %}
+<!-- <style>
   .loading-spinner {
     display: flex;
     align-items: center;
@@ -24,7 +24,8 @@
     position: relative;
     width: 100%;
     margin: 0 auto;
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: none;
     max-height: 70vh; /* Chiều cao tối đa 70% viewport */
   }
 
@@ -55,7 +56,7 @@
     vertical-align: middle;
     color: #495057;
     border-bottom: 1px solid #e9ecef;
-    min-width: 150px; /* Độ rộng tối thiểu cho mỗi cột */
+    /* min-width: 150px; */
   }
 
   /* Hover & Stripe effects */
@@ -108,9 +109,8 @@
     background-color: #d4edda;
     color: #155724;
   }
-</style>
-{% endblock %}
-{% block content %}
+</style> -->
+{% endblock %} {% block content %}
 <div class="page-content" id="app">
   <div class="container-fluid">
     <div class="row">
@@ -135,47 +135,68 @@
       <div class="col-lg-12">
         <div class="card">
           <div
-            class="card-header d-flex justify-content-between align-items-center"
+            class="card-header d-flex flex-wrap gap-2 justify-content-between align-items-center"
           >
             <div class="d-flex align-items-center">
               <h5 class="card-title mb-0 me-2">List Tasks</h5>
-              <div
-                class="badge bg-soft-info text-info fs-12 d-flex align-items-center"
-              >
-                <!-- <i class="ri-refresh-line me-1"></i> -->
-              </div>
             </div>
-            <div class="col-lg-4 col-md-6">
+            <div class="d-flex gap-2">
               <select
+                id="choiceStatus"
                 class="form-control"
-                id="choiceSheetName"
-                @change="handleSelectSheet"
+                @change="filterData"
               >
+                <option value="">Tất cả trạng thái</option>
+              </select>
+
+              <select
+                id="choiceCompany"
+                class="form-control"
+                @change="filterData"
+              >
+                <option value="">Tất cả công ty</option>
+              </select>
+
+              <select id="choiceUser" class="form-control" @change="filterData">
+                <option value="">Tất cả người phụ trách</option>
+              </select>
+
+              <button
+                class="btn btn-sm btn-outline-primary"
+                style="height: 38px; width: 38px; transition: all linear 0.2s;"
+                title="Lọc headers"
+              >
+              <i class="ri-edit-line"></i>
+              </button>
+              <!-- <select class="form-control" id="choiceSheetName" @change="handleSelectSheet">
                 <option v-for="(name, key) in sheets" :value="name" :key="key">
                   {{ name }}
                 </option>
-              </select>
+              </select> -->
             </div>
           </div>
 
           <div class="card-body">
-            <div v-if="loading" class="loading-spinner">
-              <div class="spinner-border text-primary spin" role="status"></div>
+            <div v-if="loading" class="d-flex justify-content-center align-items-center">
+              <div class="loading-spinner">
+                <div class="spinner-border text-primary spin" role="status"></div>
+              </div>
             </div>
-            <div v-else class="table-wrapper">
+            <div v-else class="card-body">
               <table
-                class="table table-bordered dt-responsive nowrap table-striped align-middle custom-table"
+                id="example"
+                class="table table-bordered dt-responsive nowrap table-striped align-middle"
                 style="width: 100%"
               >
                 <thead>
                   <tr>
-                    <th v-for="header in headers" :key="header">
+                    <th class="align-middle" v-for="header in headers" :key="header">
                       {{ header }}
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="(row, index) in data" :key="index">
+                  <tr class="align-middle" v-for="(row, index) in filteredData" :key="index">
                     <td v-for="header in headers" :key="header">
                       {{ row[header] }}
                     </td>
@@ -196,20 +217,31 @@
       const sheets = Vue.ref([]);
       const headers = Vue.ref([]);
       const data = Vue.ref([]);
+      const filteredData = Vue.ref([]);
       const loading = Vue.ref(false);
-      const choiceSheet = Vue.ref(null);
+
+      const choices = Vue.reactive({
+        sheet: null,
+        company: null,
+        user: null,
+        status: null,
+      });
+      const notSheets = [
+        "TK đăng nhập",
+        "UserChatIds",
+        "EmailMapping",
+        "Timeline",
+      ];
 
       const loadSheets = async () => {
         try {
           loading.value = true;
           let res = await axios.get("/api/sheets");
-          sheets.value = res.data;
+          sheets.value = res.data.filter((item) => !notSheets.includes(item));
           Vue.nextTick(() => {
-            choiceSheet.value = new Choices(
+            choices.sheet = new Choices(
               document.getElementById("choiceSheetName"),
-              {
-                shouldSort: false
-              }
+              { shouldSort: false }
             );
           });
         } catch (e) {
@@ -247,6 +279,40 @@
           const res = await axios.get(`/api/sheets/${sheetName}`);
           headers.value = res.data?.headers;
           data.value = res.data?.data;
+          filteredData.value = res.data?.data;
+          let listStatus = res.data?.data.map((item) => {
+            return item["TRẠNG THÁI"].trim();
+          });
+          let listCompanies = res.data?.data.map((item) => {
+            return item["CÔNG TY"].trim();
+          });
+          let listUsers = res.data?.data.map((item) => {
+            return item["PHỤ TRÁCH"].trim();
+          });
+          listCompanies = Array.from(new Set(listCompanies));
+          listStatus = Array.from(new Set(listStatus));
+          listUsers = Array.from(new Set(listUsers));
+          dt = listStatus.map((status) => ({ value: status, label: status }));
+          dt.unshift({
+            value: "",
+            label: "Tất cả trạng thái",
+          });
+          choices.status.setChoices(dt, "value", "label", true);
+          dt = listCompanies.map((company) => ({
+            value: company,
+            label: company,
+          }));
+          dt.unshift({
+            value: "",
+            label: "Tất cả công ty",
+          });
+          choices.company.setChoices(dt, "value", "label", true);
+          dt = listUsers.map((user) => ({ value: user, label: user }));
+          dt.unshift({
+            value: "",
+            label: "Tất cả nhân sự",
+          });
+          choices.user.setChoices(dt, "value", "label", true);
           // initEventSource(sheetName);
         } catch (e) {
           console.error("Error fetching sheet data:", e);
@@ -260,16 +326,47 @@
         selectSheet(sheetName);
       };
 
-      Vue.onMounted(async () => {
-        await loadSheets();
-        Vue.nextTick(() => {
-          if (choiceSheet.value) {
-            selectSheet(choiceSheet.value.getValue().value);
-          }
+      function filterData() {
+        let user = choices.user.getValue().value;
+        let company = choices.company.getValue().value;
+        let status = choices.status.getValue().value;
+        filteredData.value = data.value.filter((item) => {
+          return (
+            (status ? item["TRẠNG THÁI"].trim() === status : true) &&
+            (company ? item["CÔNG TY"].trim() === company : true) &&
+            (user ? item["PHỤ TRÁCH"].trim() === user : true)
+          );
         });
+      }
+      // Vue.watch(data, () => {
+      //   filterData();
+      // });
+
+      Vue.onMounted(async () => {
+        choices.status = new Choices(document.getElementById("choiceStatus"), {
+          shouldSort: false,
+        });
+        choices.company = new Choices(
+          document.getElementById("choiceCompany"),
+          { shouldSort: false }
+        );
+        choices.user = new Choices(document.getElementById("choiceUser"), {
+          shouldSort: false,
+        });
+        // loadSheets();
+        selectSheet("Tasks");
       });
 
-      return { sheets, headers, data, loading, handleSelectSheet };
+      return {
+        sheets,
+        headers,
+        data,
+        filteredData,
+        loading,
+        handleSelectSheet,
+        filterData,
+        choices,
+      };
     },
   });
 
