@@ -38,6 +38,7 @@ class GoogleSheets:
         if not is_valid:
             return False
 
+
         sheet_ed = sheet_ids.get(sheet_name)
         if sheet_ed is None:
             print(f"❌ Không tìm thấy sheet: {sheet_name}")
@@ -79,7 +80,10 @@ class GoogleSheets:
                     for col, value in sheet.items():
                         col_idx = self.getIndexCol(headers, col)
                         if col_idx is not None:
-                            new_row[col_idx] = value
+                            if isinstance(value, dict) and "link" in value and "text" in value:
+                                new_row[col_idx] = f'=HYPERLINK("{value["link"]}", "{value["text"]}")'
+                            else:
+                                new_row[col_idx] = value
                     updates.append({'range': f"{sheet_name}!A{row_idx + 1}", 'values': [new_row]})
                     continue
 
@@ -89,14 +93,17 @@ class GoogleSheets:
                         continue
                     col_idx = self.getIndexCol(headers, col)
                     if col_idx is not None:
-                        updates.append({'range': f"{sheet_name}!{chr(65 + col_idx)}{row_idx + 1}", 'values': [[value]]})
+                        if isinstance(value, dict) and "link" in value and "text" in value:
+                            updates.append({'range': f"{sheet_name}!{chr(65 + col_idx)}{row_idx + 1}", 'values': [[f'=HYPERLINK("{value["link"]}"; "{value["text"]}")']]})
+                        else:
+                            updates.append({'range': f"{sheet_name}!{chr(65 + col_idx)}{row_idx + 1}", 'values': [[value]]})
             except Exception as e:
                 print(f"❌ Lỗi khi cập nhật task {sheet_id}: {e}")
                 continue
 
         # Gửi batch update
         if updates:
-            self.sheet.values().batchUpdate(spreadsheetId=main_sheet_id, body={'valueInputOption': 'RAW', 'data': updates}).execute()
+            self.sheet.values().batchUpdate(spreadsheetId=main_sheet_id, body={'valueInputOption': 'USER_ENTERED', 'data': updates}).execute()
 
         # Xóa các task không còn tồn tại
         if len(existing_task_ids) > 0:
@@ -153,6 +160,9 @@ class GoogleSheets:
 
         print("✅ Đã xóa các task không còn tồn tại")
         return True
+
+    def set_id_from_path_sheet(self, url):
+        pass
 
 
     def validate_sheet_url(self, url: str) -> tuple:
@@ -218,7 +228,7 @@ class GoogleSheets:
         except Exception as e:
             return {"error": f"Unexpected error: {e}"}
 
-    def get_data_from_link(self, url: str, sheet_name):
+    def get_data_from_link(self, url: str, sheet_name, formatJson=False):
         """
         Lấy dữ liệu từ Google Sheet thông qua URL
         Returns: DataFrame hoặc None nếu có lỗi
@@ -244,10 +254,14 @@ class GoogleSheets:
                         # Nếu ô có hyperlink, bọc trong thẻ <a>
                         link = cell["hyperlink"]
                         text = cell.get("formattedValue", link)
-                        row_values.append(f"<a href='{link}' target='_blank'>{text}</a>")
+                        if formatJson:
+                            row_values.append({"text": text, "link": link})
+                        else:
+                            row_values.append(f"<a href='{link}' target='_blank'>{text}</a>")
                     else:
                         # Nếu không có link, trả về giá trị bình thường
                         row_values.append(cell.get("formattedValue", ""))
+                # print(json.dumps(row_values, indent=4, ensure_ascii=False))
                 values.append(row_values)
 
             values = [row for row in values if any(cell.strip() for cell in row)]

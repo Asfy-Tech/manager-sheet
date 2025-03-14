@@ -195,13 +195,14 @@ class FileWatcher:
         }
         for company in companies:
             try:
+                print(f"Read company: {company.name}")
                 link = company.sheet_link
-                res = gg_sheets.get_data_from_link(link, 'Tasks')
+                res = gg_sheets.get_data_from_link(link, 'Tasks', formatJson=True)
                 if res is None:
                     print(f"❌ Cannot access sheet for {company.name}")
                     company.update(status='deactive')
                     raise Exception('Không thể đọc dữ liệu!')
-
+                print(f"Read success: {company.name}")
                 company.update(status='active')
                 headers = res.get('headers')
                 data = res.get('data')
@@ -221,13 +222,13 @@ class FileWatcher:
                 if company.id in self._cache_city:
                     self._cache_city.remove(company.id)
             except Exception as e:
+                print(f"Error read company: {company.name}: {e}")
                 if company.id not in self._cache_city:
                     self._cache_city.append(company.id)
                     Notification.create(
                         title=f"Công ty: {company.name}",
                         content=e
                     )
-                print(f"Lỗi khi đọc công ty: {company.name}",e)
         self._process_sheet_tasks(data_sheets)
 
     def start(self):
