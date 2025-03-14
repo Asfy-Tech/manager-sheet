@@ -166,6 +166,7 @@ def send_table_to_telegram():
         bot = BotFather()
         data = request.get_json()
         chat_ids = data.get('users')
+        content = data.get('content')
         image_base64 = data.get("image")
 
         if not chat_ids:
@@ -192,6 +193,8 @@ def send_table_to_telegram():
         errors = []
         user = session.get('user')
         caption = f"*Người gửi*: {user['name']}"
+        if content and content != '':
+            caption += f"\n{content}"
         for chat_id in chat_ids:
             userTel = TelegramUser.first(chat_id=chat_id)
             if userTel:
