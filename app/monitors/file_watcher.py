@@ -1,5 +1,6 @@
 import time
 import threading
+import gc
 from datetime import datetime, timedelta
 from pathlib import Path
 from config.settings import settings
@@ -188,37 +189,27 @@ class FileWatcher:
         gg_sheets = GoogleSheets()
         companies = Companies.get_sorted_by_last_active()
         data_sheets = {}
-        self._messages = {
-            'late': [],
-            'today': [],
-            'future': [],
-        }
+        self._messages = {'late': [], 'today': [], 'future': []}
         for company in companies:
             try:
-                print(f"Read company: {company.name}")
                 link = company.sheet_link
                 res = gg_sheets.get_data_from_link(link, 'Tasks', formatJson=True)
                 if res is None:
-                    print(f"❌ Cannot access sheet for {company.name}")
                     company.update(status='deactive')
                     raise Exception('Không thể đọc dữ liệu!')
-                print(f"Read success: {company.name}")
                 company.update(status='active')
                 headers = res.get('headers')
                 data = res.get('data')
                 lower_headers = [h.upper() for h in headers]
                 if settings.TASK_ID not in lower_headers or settings.TASK_STATUS not in lower_headers:
-                    print(f"❌ Invalid sheet format for {company.name}")
                     company.update(status='deactive')
                     raise Exception(f'Cột: {settings.TASK_ID} hoặc {settings.TASK_STATUS} không tồn tại!')
                 
-                print(f"\n📊 Processing {company.name}...")
                 for dt in data:
                     if dt.get(settings.TASK_ID):
                         dt['CÔNG TY'] = company.name
                         data_sheets[dt.get(settings.TASK_ID)] = dt
                 company.update(last_active=datetime.now(vn_timezone))
-                print(f'Lần truy cập cuối: {company.name} - {datetime.now(vn_timezone)}')
                 if company.id in self._cache_city:
                     self._cache_city.remove(company.id)
             except Exception as e:
@@ -230,11 +221,14 @@ class FileWatcher:
                         content=e
                     )
         self._process_sheet_tasks(data_sheets)
+        data_sheets.clear()
+        del data_sheets
+        gc.collect()
 
     def start(self):
         while True:
             self._check_files()
-            for i in range(60, 0, -1):
+            for i in range(180, 0, -1):
                 time.sleep(1)
 
     def stop(self):
