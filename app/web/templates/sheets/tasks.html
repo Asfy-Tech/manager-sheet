@@ -78,13 +78,17 @@ style %}
                   id="ul-show-headers-selected"
                 >
                   <li v-for="(name, idx) in headers">
-                    <label :for="idx" class="dropdown-item cursor-pointer d-flex align-items-center gap-3" href="javascript:void(0);">
+                    <label
+                      :for="idx"
+                      class="dropdown-item cursor-pointer d-flex align-items-center gap-3"
+                      href="javascript:void(0);"
+                    >
                       <input
                         v-model="modelSelectedHeader"
                         :value="name"
                         :id="idx"
                         type="checkbox"
-                      >
+                      />
                       {{ name }}
                     </label>
                   </li>
@@ -96,6 +100,78 @@ style %}
                   {{ name }}
                 </option>
               </select> -->
+
+              <div class="btn-group">
+                <button
+                  id="dropdownMenuUserTelegram"
+                  data-bs-toggle="dropdown"
+                  data-bs-auto-close="outside"
+                  aria-expanded="false"
+                  class="btn btn-sm btn-primary position-relative dropdown-toggle"
+                  style="height: 38px; width: 60px; transition: all linear 0.2s"
+                  type="button"
+                  title="Lọc headers"
+                >
+                  <i class="ri-send-plane-fill"></i>
+                </button>
+                <ul
+                  class="dropdown-menu"
+                  aria-labelledby="dropdownMenuUserTelegram"
+                  id="ul-show-headers-selected"
+                >
+                  <!-- Loading -->
+                  <li v-if="loadingTelegram.load" class="text-center py-1">
+                    <div class="loading-spinner">
+                      <div
+                        class="spinner-border spinner-border-sm text-primary spin"
+                        role="status"
+                      ></div>
+                    </div>
+                  </li>
+                  <!-- Không có user -->
+                  <li
+                    v-else-if="usersTelegram.length === 0"
+                    class="text-center py-1"
+                  >
+                    <label
+                      class="dropdown-item cursor-pointer d-flex align-items-center gap-3"
+                    >
+                      <i class="fas fa-exclamation-circle text-danger"></i>
+                      Không có người dùng
+                    </label>
+                  </li>
+                  <li v-for="(item, idx) in usersTelegram" :key="idx">
+                    <label
+                      :for="`${item.chat_id}_user_tele`"
+                      class="dropdown-item cursor-pointer d-flex align-items-center gap-3"
+                    >
+                      <input
+                        v-model="modelSelectedUserTelegram"
+                        :value="item.chat_id"
+                        :id="`${item.chat_id}_user_tele`"
+                        type="checkbox"
+                      />
+                      {{ item.name }}
+                    </label>
+                  </li>
+                </ul>
+                <button
+                  v-if="loadingTelegram.show"
+                  class="btn btn-sm btn-success"
+                  style="height: 38px; width: 60px; transition: all linear 0.2s"
+                  type="button"
+                  title="Gửi tin nhắn"
+                  @click="sendMessage"
+                >
+                  <div v-if="loadingTelegram.submit" class="loading-spinner">
+                    <div
+                      class="spinner-border spinner-border-sm text-primary spin"
+                      role="status"
+                    ></div>
+                  </div>
+                  <i v-else class="ri-send-plane-2-fill"></i>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -113,7 +189,7 @@ style %}
             </div>
             <div v-else class="card-body">
               <table
-                id="example"
+                id="table-data-sheets"
                 class="table table-bordered dt-responsive nowrap table-striped align-middle"
                 style="width: 100%"
               >
@@ -129,14 +205,21 @@ style %}
                   </tr>
                 </thead>
                 <tbody>
+                  <tr v-if="filteredData.length === 0">
+                    <td
+                      :colspan="headerSelected.length"
+                      class="text-center text-muted py-3"
+                    >
+                      Không có công việc nào
+                    </td>
+                  </tr>
                   <tr
+                    v-else
                     class="align-middle"
                     v-for="(row, index) in filteredData"
                     :key="index"
                   >
-                    <td v-for="header in headerSelected" :key="header">
-                      {{ row[header] }}
-                    </td>
+                    <td v-for="header in headerSelected" :key="header" v-html="row[header]"></td>
                   </tr>
                 </tbody>
               </table>
@@ -148,6 +231,7 @@ style %}
   </div>
 </div>
 {% endblock %} {% block script %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
   const app = Vue.createApp({
     setup() {
@@ -158,8 +242,20 @@ style %}
       const headerSelected = Vue.ref([]);
       const filteredData = Vue.ref([]);
       const loading = Vue.ref(false);
+      const loadingTelegram = Vue.reactive({
+        load: false,
+        show: false,
+        submit: false,
+      });
+      const usersTelegram = Vue.ref([]);
       const modelSelectedHeader = Vue.ref([]);
-      const defaultStatus = ['Ðã hoàn thành','Chưa bắt đầu','Đang thực hiện','Tạm hoãn'];
+      const modelSelectedUserTelegram = Vue.ref([]);
+      const defaultStatus = [
+        "Ðã hoàn thành",
+        "Chưa bắt đầu",
+        "Đang thực hiện",
+        "Tạm hoãn",
+      ];
 
       const choices = Vue.reactive({
         sheet: null,
@@ -173,6 +269,7 @@ style %}
         "EmailMapping",
         "Timeline",
       ];
+      let listHeaderCheck = ['CÔNG TY','HẠNG MỤC','VIỆC CẦN LÀM','PHỤ TRÁCH','HỖ TRỢ','TRẠNG THÁI','START','DEADLINE','THỜI GIAN HOÀN THÀNH','THÀNH PHẨM']
 
       const loadSheets = async () => {
         try {
@@ -215,13 +312,23 @@ style %}
       };
 
       const selectSheet = async (sheetName) => {
-        const storedHeaders = localStorage.getItem('headers');
+        const storedHeaders = localStorage.getItem("headers");
         try {
           loading.value = true;
           const res = await axios.get(`/api/sheets/${sheetName}`);
           headers.value = res.data?.headers;
-          headerSelected.value = storedHeaders ? JSON.parse(storedHeaders) : headers.value
-          countSelectHeader.value = headerSelected.value.length
+          if (storedHeaders && storedHeaders != '[]') {
+            let newHeaders = JSON.parse(storedHeaders);
+            headerSelected.value = Array.from(headers.value).filter(item => {
+              return newHeaders.includes(item.trim())
+            });
+          } else {
+            let newHeaders = Array.from(headers.value).filter((item) => {
+              return listHeaderCheck.includes(item.trim());
+            });
+            headerSelected.value = newHeaders;
+          }
+          countSelectHeader.value = headerSelected.value.length;
           data.value = res.data?.data;
           filteredData.value = res.data?.data;
           let listStatus = res.data?.data.map((item) => {
@@ -233,11 +340,11 @@ style %}
           let listUsers = res.data?.data.map((item) => {
             return item["PHỤ TRÁCH"].trim();
           });
-          defaultStatus.forEach(item => {
-            if (!listStatus.includes(item)){
-              listStatus.push(item)
+          defaultStatus.forEach((item) => {
+            if (!listStatus.includes(item)) {
+              listStatus.push(item);
             }
-          })
+          });
           listCompanies = Array.from(new Set(listCompanies));
           listStatus = Array.from(new Set(listStatus));
           listUsers = Array.from(new Set(listUsers));
@@ -288,12 +395,22 @@ style %}
           );
         });
       }
-      
+
       Vue.watch(modelSelectedHeader, (newValue) => {
         let newHeaderSelected = Array.from(newValue);
-        localStorage.setItem('headers', JSON.stringify(newHeaderSelected))
-        headerSelected.value = newHeaderSelected
-        countSelectHeader.value = newHeaderSelected.length
+        localStorage.setItem("headers", JSON.stringify(newHeaderSelected));
+        headerSelected.value = Array.from(headers.value).filter(item => {
+          return newHeaderSelected.includes(item.trim())
+        });
+        countSelectHeader.value = newHeaderSelected.length;
+      });
+
+      Vue.watch(modelSelectedUserTelegram, (newValue) => {
+        if (newValue.length === 0) {
+          loadingTelegram.show = false;
+        } else {
+          loadingTelegram.show = true;
+        }
       });
 
       Vue.onMounted(async () => {
@@ -310,7 +427,67 @@ style %}
         // loadSheets();
         await selectSheet("Tasks");
         modelSelectedHeader.value = [...headerSelected.value];
+
+        const dropdownMenu = document.getElementById(
+          "dropdownMenuUserTelegram"
+        );
+        dropdownMenu.addEventListener("shown.bs.dropdown", async () => {
+          await loadListUsersTelegram();
+        });
       });
+
+      async function loadListUsersTelegram() {
+        loadingTelegram.load = true;
+        try {
+          let res = await axios.get("/api/telegrams/users");
+          if (res.status == 200) {
+            usersTelegram.value = res.data?.data;
+          }
+        } catch (e) {
+          console.log(`Lỗi khi get user: ${e}`);
+        }
+        loadingTelegram.load = false;
+      }
+
+      const showToast = (message, type = "success") => {
+        Toastify({
+          text: message,
+          duration: 3000,
+          gravity: "top",
+          position: "right",
+          backgroundColor: type === "success" ? "#4caf50" : "#f44336",
+          close: true,
+          stopOnFocus: true,
+        }).showToast();
+      };
+
+      async function sendMessage() {
+        loadingTelegram.submit = true;
+        try {
+          const table = document.getElementById("table-data-sheets");
+          const canvas = await html2canvas(table, {
+            scale: 3, // Tăng độ nét
+            useCORS: true,
+            backgroundColor: null,
+          });
+          const imageData = canvas.toDataURL("image/png"); 
+          // Gửi ảnh lên backend
+          const res = await axios.post("/api/telegrams/send-table", {
+            image: imageData,
+            users: modelSelectedUserTelegram.value,
+          });
+
+          if (res.status === 200 && res.data.success) {
+            showToast(res.data.message || "Ảnh đã gửi thành công!","success");
+            modelSelectedUserTelegram.value = []
+          } else {
+            showToast(res.data.error || "Có lỗi xảy ra khi gửi ảnh!", "error");
+          }
+        } catch (e) {
+          showToast(`Lỗi khi gửi ảnh: ${e.message || e}`, "error");
+        }
+        loadingTelegram.submit = false;
+      }
 
       return {
         sheets,
@@ -322,7 +499,11 @@ style %}
         headerSelected,
         filterData,
         countSelectHeader,
+        sendMessage,
         choices,
+        usersTelegram,
+        modelSelectedUserTelegram,
+        loadingTelegram,
       };
     },
   });
