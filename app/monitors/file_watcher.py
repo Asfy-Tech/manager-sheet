@@ -231,21 +231,10 @@ class FileWatcher:
         self._process_sheet_tasks(data_sheets)
 
     def start(self):
-        """Bắt đầu quá trình theo dõi file"""
-        if self._running:
-            print("FileWatcher đã chạy rồi, không khởi động lại.")
-            return
-
-        self._running = True
-        def run():
-            while self._running:
-                self._check_files()
-                for i in range(self.interval, 0, -1):
-                    print(f"Chờ: {i}s")
-                    time.sleep(1)
-        self._thread = threading.Thread(target=run, daemon=True)
-        self._thread.start()
-        self._thread.join()
+        while True:
+            self._check_files()
+            for i in range(60, 0, -1):
+                time.sleep(1)
 
     def stop(self):
         """Dừng quá trình theo dõi file"""

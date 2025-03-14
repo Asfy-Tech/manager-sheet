@@ -1,4 +1,4 @@
 # SERVICE:
     manager_sheets
-    manager_sheets_telegram_bot
-    manager_sheets_watch_files
+    manager_sheets_telegram_bot -> /etc/supervisord.d/sheet_services.ini
+    manager_sheets_watch_files -> /etc/supervisord.d/sheet_telegram_bot.ini

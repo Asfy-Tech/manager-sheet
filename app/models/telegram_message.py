@@ -11,7 +11,7 @@ class TelegramMessage(BaseModel):
 
     task_id = Column(String(50), nullable=False)
     category = Column(String(150), nullable=False, comment="Hạng mục")
-    todo = Column(String(200), unique=True, nullable=False, comment="Việc cần làm")
+    todo = Column(String(200), nullable=False, comment="Việc cần làm")
     representative = Column(String(100), comment="Người phụ trách")
     support = Column(String(100), default=True, comment="Người hỗ trợ")
     company = Column(String(100), default=True, comment="Công ty")

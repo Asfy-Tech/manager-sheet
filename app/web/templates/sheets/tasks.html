@@ -159,6 +159,7 @@ style %}
       const filteredData = Vue.ref([]);
       const loading = Vue.ref(false);
       const modelSelectedHeader = Vue.ref([]);
+      const defaultStatus = ['Ðã hoàn thành','Chưa bắt đầu','Đang thực hiện','Tạm hoãn'];
 
       const choices = Vue.reactive({
         sheet: null,
@@ -232,6 +233,11 @@ style %}
           let listUsers = res.data?.data.map((item) => {
             return item["PHỤ TRÁCH"].trim();
           });
+          defaultStatus.forEach(item => {
+            if (!listStatus.includes(item)){
+              listStatus.push(item)
+            }
+          })
           listCompanies = Array.from(new Set(listCompanies));
           listStatus = Array.from(new Set(listStatus));
           listUsers = Array.from(new Set(listUsers));
