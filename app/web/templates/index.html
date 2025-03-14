@@ -132,11 +132,10 @@ block style %}
               <h5 class="card-title mb-0 me-2">Danh sách công việc hôm nay</h5>
               <div
                 class="badge bg-soft-info text-info fs-12 d-flex align-items-center"
-              >
-                <!-- <i class="ri-refresh-line me-1"></i> -->
-              </div>
+              ></div>
             </div>
-            <div class="col-lg-4 col-md-6">
+
+            <div class="col-lg-2 col-md-6" style="margin-left: 380px">
               <select
                 class="form-control"
                 id="choiceTaskName"
@@ -147,6 +146,20 @@ block style %}
                 <option value="2">Tới hạn hôm nay</option>
                 <option value="3">Sắp tới deadline</option>
               </select>
+            </div>
+            <div class="col-lg-3 col-md-2">
+              <div class="row">
+                <div class="col-lg-6">
+                  <button class="btn btn-success w-100" @click="exportExcel">
+                    Xuất Excel
+                  </button>
+                </div>
+                <div class="col-lg-6">
+                  <button class="btn btn-danger w-100" @click="exportPDF">
+                    Xuất PDF
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
           <div class="card-body">
@@ -219,7 +232,7 @@ block style %}
       const loadTasks = async (params = {}) => {
         try {
           loading.value = true;
-          const res = await axios.get("/api/telegrams/messages", {params});
+          const res = await axios.get("/api/telegrams/messages", { params });
           if (res.data?.success) {
             tasks.value = res.data?.data;
           }
@@ -230,25 +243,164 @@ block style %}
         }
       };
 
-      function formatDate(date) {
-        return moment(date).fromNow();
-      }
+      const exportExcel = async () => {
+        try {
+          const workbook = new ExcelJS.Workbook();
+          const worksheet = workbook.addWorksheet("Danh Sách Công Việc", {
+            properties: { defaultRowHeight: 20 }, // Chiều cao mặc định
+          });
+
+          worksheet.columns = [
+            { header: "Task ID", key: "task_id" },
+            { header: "Người phụ trách", key: "representative" },
+            { header: "Công ty", key: "company" },
+            { header: "Công việc", key: "todo" },
+            { header: "Hạng mục", key: "category" },
+            { header: "Deadline", key: "deadline" },
+          ];
+
+          const headerRow = worksheet.getRow(1);
+          worksheet.columns.forEach((col) => {
+            col.alignment = { horizontal: "center", vertical: "middle" };
+          });
+
+          // Style cho tiêu đề (font size 12)
+          headerRow.eachCell((cell) => {
+            cell.font = {
+              name: "Times New Roman",
+              size: 12,
+              bold: true,
+              color: { argb: "FFFFFF" },
+            };
+            cell.fill = {
+              type: "pattern",
+              pattern: "solid",
+              fgColor: { argb: "1F497D" },
+            };
+            cell.alignment = { horizontal: "center", vertical: "middle" };
+            cell.border = {
+              top: { style: "dotted" },
+              left: { style: "dotted" },
+              bottom: { style: "dotted" },
+              right: { style: "dotted" },
+            };
+          });
+
+          // Lấy ngày hiện tại
+          const today = new Date();
+          today.setHours(0, 0, 0, 0); // Đảm bảo chỉ so sánh ngày mà không xét giờ
+
+          // Duyệt danh sách task và thêm vào file Excel
+          tasks.value.forEach((task, index) => {
+            const row = worksheet.addRow({
+              task_id: task.task_id,
+              representative: task.representative,
+              company: task.company,
+              todo: task.todo,
+              category: task.category,
+              deadline: task.deadline,
+            });
+
+            row.eachCell((cell, colIndex) => {
+              // Font cho "Task ID", "Công ty", "Hạng mục" in đậm
+              if (colIndex === 1 || colIndex === 3 || colIndex === 5) {
+                cell.font = { name: "Times New Roman", size: 11, bold: true };
+              } else {
+                cell.font = { name: "Times New Roman", size: 11 }; // Font cho các cột khác
+              }
+
+              cell.alignment = { horizontal: "center", vertical: "middle" };
+              cell.border = {
+                top: { style: "dotted" },
+                left: { style: "dotted" },
+                bottom: { style: "dotted" },
+                right: { style: "dotted" },
+              };
+            });
+
+            // Kiểm tra xem deadline có quá hạn không
+            const deadline = new Date(task.deadline);
+            deadline.setHours(0, 0, 0, 0); // Đảm bảo so sánh chính xác ngày
+
+            if (deadline < today) {
+              row.eachCell((cell) => {
+                cell.fill = {
+                  type: "pattern",
+                  pattern: "solid",
+                  fgColor: { argb: "FFCCCC" }, // Màu đỏ nhạt
+                };
+              });
+            }
+
+            // Xen kẽ màu dòng để dễ nhìn
+            if (index % 2 === 0) {
+              row.eachCell((cell) => {
+                cell.fill = {
+                  type: "pattern",
+                  pattern: "solid",
+                  fgColor: { argb: "EDEDED" }, // Màu xám nhạt
+                };
+              });
+            }
+          });
+
+          // **Tự động căn chỉnh độ rộng cột**
+          worksheet.columns.forEach((column) => {
+            let maxLength = 0;
+            column.eachCell({ includeEmpty: true }, (cell) => {
+              const cellLength = cell.value ? cell.value.toString().length : 10;
+              if (cellLength > maxLength) {
+                maxLength = cellLength;
+              }
+            });
+            column.width = maxLength + 2; // Thêm padding để không bị sát mép
+          });
+
+          // Tạo file và tải xuống
+          const buffer = await workbook.xlsx.writeBuffer();
+          const blob = new Blob([buffer], {
+            type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          });
+
+          const link = document.createElement("a");
+          link.href = URL.createObjectURL(blob);
+          link.download = "Danh_Sach_Cong_Viec.xlsx";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        } catch (error) {
+          console.error("Lỗi khi xuất file Excel:", error);
+        }
+      };
+
+      const exportPDF = () => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        doc.text("Danh sách công việc", 14, 10);
+        doc.autoTable({ html: ".custom-table" });
+
+        doc.save("Danh_sach_cong_viec.pdf");
+      };
 
       Vue.onMounted(() => {
         loadTasks();
-        new Choices(document.getElementById("choiceTaskName"),{ shouldSort: false })
+        new Choices(document.getElementById("choiceTaskName"), {
+          shouldSort: false,
+        });
       });
 
       const handleSelectTask = async (event) => {
         const type = event.target.value;
-        await loadTasks({type})
+        await loadTasks({ type });
       };
 
       return {
         tasks,
         loading,
-        formatDate,
-        handleSelectTask
+        handleSelectTask,
+        exportExcel,
+        exportPDF,
       };
     },
   });
