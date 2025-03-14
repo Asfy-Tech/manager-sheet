@@ -1,114 +1,5 @@
 {% extends "layouts/app.html" %} {% block title %}Watch List{% endblock %} {%
 block style %}
-<style>
-  .loading-spinner {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 20px;
-  }
-  .spin {
-    animation: spin 1s linear infinite;
-  }
-  @keyframes spin {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
-  }
-
-  /* Table Container */
-  .table-wrapper {
-    position: relative;
-    width: 100%;
-    margin: 0 auto;
-    overflow: auto;
-    max-height: 70vh; /* Chiều cao tối đa 70% viewport */
-  }
-
-  /* Custom Table Styles */
-  .custom-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    min-width: 100%;
-  }
-
-  .custom-table thead th {
-    position: sticky;
-    top: 0;
-    background: #f3f6f9;
-    padding: 15px 20px;
-    font-weight: 600;
-    font-size: 14px;
-    color: #495057;
-    text-transform: uppercase;
-    border-bottom: 2px solid #e9ecef;
-    white-space: nowrap;
-  }
-
-  .custom-table tbody td {
-    padding: 7px 14px;
-    font-size: 12px;
-    vertical-align: middle;
-    color: #495057;
-    border-bottom: 1px solid #e9ecef;
-    min-width: 150px; /* Độ rộng tối thiểu cho mỗi cột */
-  }
-
-  /* Hover & Stripe effects */
-  .custom-table tbody tr:nth-child(even) {
-    background-color: #f8f9fa;
-  }
-
-  .custom-table tbody tr:hover {
-    background-color: #f3f6f9;
-  }
-
-  /* Scrollbar styling */
-  .table-wrapper::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-
-  .table-wrapper::-webkit-scrollbar-track {
-    background: #f1f1f1;
-  }
-
-  .table-wrapper::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 3px;
-  }
-
-  .table-wrapper::-webkit-scrollbar-thumb:hover {
-    background: #555;
-  }
-
-  /* Status styling */
-  .status-cell {
-    padding: 5px 10px;
-    border-radius: 4px;
-    white-space: nowrap;
-    font-weight: 500;
-  }
-
-  .status-pending {
-    background-color: #fff3cd;
-    color: #856404;
-  }
-
-  .status-progress {
-    background-color: #cce5ff;
-    color: #004085;
-  }
-
-  .status-completed {
-    background-color: #d4edda;
-    color: #155724;
-  }
-</style>
 {% endblock %} {% block content %}
 <div class="page-content" id="app">
   <div class="container-fluid">
@@ -136,8 +27,16 @@ block style %}
             <h5 class="card-title mb-0">Companies Watch List</h5>
           </div>
           <div class="card-body">
-            <div v-if="loading" class="loading-spinner">
-              <div class="spinner-border text-primary spin" role="status"></div>
+            <div
+              v-if="loading"
+              class="d-flex justify-content-center align-items-center"
+            >
+              <div class="loading-spinner">
+                <div
+                  class="spinner-border text-primary spin"
+                  role="status"
+                ></div>
+              </div>
             </div>
             <div v-else class="table-wrapper">
               <table class="table custom-table">
