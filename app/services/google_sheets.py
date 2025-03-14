@@ -230,19 +230,34 @@ class GoogleSheets:
             return None
 
         try:
-            result = self.sheet.values().get(
+            result = self.sheet.get(
                 spreadsheetId=sheet_id,
-                range=sheet_name
+                ranges=sheet_name,
+                includeGridData=True
             ).execute()
 
-            values = result.get('values', [])
+            values = []
+            for row in result["sheets"][0]["data"][0]["rowData"]:
+                row_values = []
+                for cell in row.get("values", []):
+                    if "hyperlink" in cell:
+                        # Nếu ô có hyperlink, bọc trong thẻ <a>
+                        link = cell["hyperlink"]
+                        text = cell.get("formattedValue", link)
+                        row_values.append(f"<a href='{link}' target='_blank'>{text}</a>")
+                    else:
+                        # Nếu không có link, trả về giá trị bình thường
+                        row_values.append(cell.get("formattedValue", ""))
+                values.append(row_values)
+
+            values = [row for row in values if any(cell.strip() for cell in row)]
 
             if not values:
                 print("⚠️ Google Sheet trống!")
                 return {"headers": [], "data": []}
 
             # Chuyển dữ liệu thành dictionary
-            headers = values[0]
+            headers = [h for h in values[0] if h.strip()]  
             data = [dict(zip(headers, row)) for row in values[1:]]
 
             return {"headers": headers, "data": data}

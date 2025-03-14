@@ -19,6 +19,29 @@ class BotFather:
     def me(self):
         """Lấy thông tin về bot"""
         return self._request("getMe")
+    
+    def get_all_users(self):
+        """Lấy danh sách tất cả người dùng"""
+        url = f"{self.base_url}/getUpdates"
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            data = response.json()
+
+            users = set()  # Sử dụng set để tránh trùng lặp người dùng
+            if "result" in data:
+                for update in data["result"]:
+                    if "message" in update and "chat" in update["message"]:
+                        chat = update["message"]["chat"]
+                        user_id = chat.get("id")
+                        first_name = chat.get("first_name", "")
+                        last_name = chat.get("last_name", "")
+                        username = chat.get("username", "")
+                        users.add((user_id, first_name, last_name, username))
+
+            return list(users)
+        except requests.exceptions.RequestException as e:
+            return {"error": str(e)}
 
     def get_updates(self, offset=None, limit=100, timeout=0):
         """Lấy các cập nhật tin nhắn mới nhất và xử lý lệnh /myid"""
@@ -46,14 +69,22 @@ class BotFather:
         }
         return self._request("sendMessage", payload)
 
-    def send_photo(self, chat_id, photo_url, caption=None):
+    def send_photo(self, chat_id, photo_path, caption=None):
         """Gửi ảnh đến một chat_id"""
-        payload = {
-            "chat_id": chat_id,
-            "photo": photo_url,
-            "caption": caption
-        }
-        return self._request("sendPhoto", payload)
+        url = f"{self.base_url}/sendPhoto"
+        with open(photo_path, "rb") as photo:
+            payload = {
+                "chat_id": chat_id,
+                "caption": caption,
+                "parse_mode": ParseMode.MARKDOWN
+            }
+            files = {"photo": photo}
+            try:
+                response = requests.post(url, data=payload, files=files)
+                response.raise_for_status()
+                return response.json()
+            except requests.exceptions.RequestException as e:
+                return {"error": str(e)}
 
     def send_audio(self, chat_id, audio_url, caption=None):
         """Gửi âm thanh đến một chat_id"""

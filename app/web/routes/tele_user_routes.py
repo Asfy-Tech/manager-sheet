@@ -1,10 +1,11 @@
 from . import routes
-from flask import current_app as app
+from flask import current_app as app, session
 from flask import jsonify, stream_with_context, Response, request
 import json
 from werkzeug.exceptions import NotFound, BadRequest
 from app.models.telegram_users import TelegramUser
 from app.models.telegram_message import TelegramMessage
+from app.services.bot_telegram import BotFather
 from time import sleep
 from sqlalchemy import func
 from config.settings import settings
@@ -12,6 +13,11 @@ import pytz
 from sqlalchemy.orm import sessionmaker
 from app.models.base import engine
 from datetime import datetime
+
+@routes.route("/api/telegrams/users/remote") 
+def get_user_remote_tele_message():
+    users = BotFather().get_all_users()
+    return jsonify(users)
 
 @routes.route("/api/telegrams/messages") 
 def get_tele_message():
@@ -151,3 +157,58 @@ def info_get_tele_users(id):
                 "error": str(e)
             }), 500
 
+import os
+import time
+import base64
+@routes.route("/api/telegrams/send-table", methods=["POST"])
+def send_table_to_telegram():
+    try:
+        bot = BotFather()
+        data = request.get_json()
+        chat_ids = data.get('users')
+        image_base64 = data.get("image")
+
+        if not chat_ids:
+            return jsonify({"success": False, "error": "No chat IDs provided"}), 400
+
+        if not image_base64:
+            return jsonify({"success": False, "error": "No image provided"}), 400
+
+        # Chuyển base64 thành file ảnh
+        image_data = image_base64.replace("data:image/png;base64,", "")
+        image_data = base64.b64decode(image_data)
+
+        # Tạo thư mục nếu chưa tồn tại
+        if not os.path.exists(settings.UPLOAD_FOLDER):
+            os.makedirs(settings.UPLOAD_FOLDER)
+
+        # Lưu ảnh vào server
+        filename = f"table_{int(time.time())}.png"
+        filepath = os.path.join(settings.UPLOAD_FOLDER, filename)
+        with open(filepath, "wb") as f:
+            f.write(image_data)
+
+        # Gửi ảnh lên Telegram cho từng chat_id trong danh sách
+        errors = []
+        user = session.get('user')
+        caption = f"*Người gửi*: {user['name']}"
+        for chat_id in chat_ids:
+            userTel = TelegramUser.first(chat_id=chat_id)
+            if userTel:
+                response = bot.send_photo(chat_id, filepath, caption=caption)
+                if "error" in response:
+                    errors.append({"chat_id": chat_id, "error": response["error"]})
+
+        # Xóa file sau khi gửi xong
+        if os.path.exists(filepath):
+            os.remove(filepath)
+
+        if errors:
+            return jsonify({"success": False, "errors": errors}), 500
+
+        return jsonify({
+            "success": True,
+            "message": "Ảnh đã gửi lên Telegram"
+        }), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
