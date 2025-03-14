@@ -1,115 +1,10 @@
 {% extends "layouts/app.html" %} {% block title %}Pages{% endblock %} {% block
 style %}
-<!-- <style>
-  .loading-spinner {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 20px;
+<style>
+  #ul-show-headers-selected[data-popper-placement="bottom-start"] {
+    transform: translate3d(-159.2px, 40px, 0px) !important;
   }
-  .spin {
-    animation: spin 1s linear infinite;
-  }
-  @keyframes spin {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
-  }
-
-  /* Table Container */
-  .table-wrapper {
-    position: relative;
-    width: 100%;
-    margin: 0 auto;
-    overflow-y: auto;
-    overflow-x: none;
-    max-height: 70vh; /* Chiều cao tối đa 70% viewport */
-  }
-
-  /* Custom Table Styles */
-  .custom-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    min-width: 100%;
-  }
-
-  .custom-table thead th {
-    position: sticky;
-    top: 0;
-    background: #f3f6f9;
-    padding: 15px 20px;
-    font-weight: 600;
-    font-size: 14px;
-    color: #495057;
-    text-transform: uppercase;
-    border-bottom: 2px solid #e9ecef;
-    white-space: nowrap;
-  }
-
-  .custom-table tbody td {
-    padding: 7px 14px;
-    font-size: 12px;
-    vertical-align: middle;
-    color: #495057;
-    border-bottom: 1px solid #e9ecef;
-    /* min-width: 150px; */
-  }
-
-  /* Hover & Stripe effects */
-  .custom-table tbody tr:nth-child(even) {
-    background-color: #f8f9fa;
-  }
-
-  .custom-table tbody tr:hover {
-    background-color: #f3f6f9;
-  }
-
-  /* Scrollbar styling */
-  .table-wrapper::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-
-  .table-wrapper::-webkit-scrollbar-track {
-    background: #f1f1f1;
-  }
-
-  .table-wrapper::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 3px;
-  }
-
-  .table-wrapper::-webkit-scrollbar-thumb:hover {
-    background: #555;
-  }
-
-  /* Status styling */
-  .status-cell {
-    padding: 5px 10px;
-    border-radius: 4px;
-    white-space: nowrap;
-    font-weight: 500;
-  }
-
-  .status-pending {
-    background-color: #fff3cd;
-    color: #856404;
-  }
-
-  .status-progress {
-    background-color: #cce5ff;
-    color: #004085;
-  }
-
-  .status-completed {
-    background-color: #d4edda;
-    color: #155724;
-  }
-</style> -->
+</style>
 {% endblock %} {% block content %}
 <div class="page-content" id="app">
   <div class="container-fluid">
@@ -160,14 +55,42 @@ style %}
               <select id="choiceUser" class="form-control" @change="filterData">
                 <option value="">Tất cả người phụ trách</option>
               </select>
+              <div class="btn-group">
+                <button
+                  id="dropdownMenuClickableInside"
+                  data-bs-toggle="dropdown"
+                  data-bs-auto-close="outside"
+                  aria-expanded="false"
+                  class="btn btn-sm btn-primary position-relative dropdown-toggle"
+                  style="height: 38px; width: 60px; transition: all linear 0.2s"
+                  type="button"
+                  title="Lọc headers"
+                >
+                  <i class="ri-edit-line"></i
+                  ><span
+                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success"
+                    >{{ countSelectHeader }}</span
+                  >
+                </button>
+                <ul
+                  class="dropdown-menu"
+                  aria-labelledby="dropdownMenuClickableInside"
+                  id="ul-show-headers-selected"
+                >
+                  <li v-for="(name, idx) in headers">
+                    <label :for="idx" class="dropdown-item cursor-pointer d-flex align-items-center gap-3" href="javascript:void(0);">
+                      <input
+                        v-model="modelSelectedHeader"
+                        :value="name"
+                        :id="idx"
+                        type="checkbox"
+                      >
+                      {{ name }}
+                    </label>
+                  </li>
+                </ul>
+              </div>
 
-              <button
-                class="btn btn-sm btn-outline-primary"
-                style="height: 38px; width: 38px; transition: all linear 0.2s;"
-                title="Lọc headers"
-              >
-              <i class="ri-edit-line"></i>
-              </button>
               <!-- <select class="form-control" id="choiceSheetName" @change="handleSelectSheet">
                 <option v-for="(name, key) in sheets" :value="name" :key="key">
                   {{ name }}
@@ -177,9 +100,15 @@ style %}
           </div>
 
           <div class="card-body">
-            <div v-if="loading" class="d-flex justify-content-center align-items-center">
+            <div
+              v-if="loading"
+              class="d-flex justify-content-center align-items-center"
+            >
               <div class="loading-spinner">
-                <div class="spinner-border text-primary spin" role="status"></div>
+                <div
+                  class="spinner-border text-primary spin"
+                  role="status"
+                ></div>
               </div>
             </div>
             <div v-else class="card-body">
@@ -190,14 +119,22 @@ style %}
               >
                 <thead>
                   <tr>
-                    <th class="align-middle" v-for="header in headers" :key="header">
+                    <th
+                      class="align-middle"
+                      v-for="header in headerSelected"
+                      :key="header"
+                    >
                       {{ header }}
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr class="align-middle" v-for="(row, index) in filteredData" :key="index">
-                    <td v-for="header in headers" :key="header">
+                  <tr
+                    class="align-middle"
+                    v-for="(row, index) in filteredData"
+                    :key="index"
+                  >
+                    <td v-for="header in headerSelected" :key="header">
                       {{ row[header] }}
                     </td>
                   </tr>
@@ -217,8 +154,11 @@ style %}
       const sheets = Vue.ref([]);
       const headers = Vue.ref([]);
       const data = Vue.ref([]);
+      const countSelectHeader = Vue.ref(0);
+      const headerSelected = Vue.ref([]);
       const filteredData = Vue.ref([]);
       const loading = Vue.ref(false);
+      const modelSelectedHeader = Vue.ref([]);
 
       const choices = Vue.reactive({
         sheet: null,
@@ -274,10 +214,13 @@ style %}
       };
 
       const selectSheet = async (sheetName) => {
+        const storedHeaders = localStorage.getItem('headers');
         try {
           loading.value = true;
           const res = await axios.get(`/api/sheets/${sheetName}`);
           headers.value = res.data?.headers;
+          headerSelected.value = storedHeaders ? JSON.parse(storedHeaders) : headers.value
+          countSelectHeader.value = headerSelected.value.length
           data.value = res.data?.data;
           filteredData.value = res.data?.data;
           let listStatus = res.data?.data.map((item) => {
@@ -313,6 +256,7 @@ style %}
             label: "Tất cả nhân sự",
           });
           choices.user.setChoices(dt, "value", "label", true);
+
           // initEventSource(sheetName);
         } catch (e) {
           console.error("Error fetching sheet data:", e);
@@ -338,9 +282,13 @@ style %}
           );
         });
       }
-      // Vue.watch(data, () => {
-      //   filterData();
-      // });
+      
+      Vue.watch(modelSelectedHeader, (newValue) => {
+        let newHeaderSelected = Array.from(newValue);
+        localStorage.setItem('headers', JSON.stringify(newHeaderSelected))
+        headerSelected.value = newHeaderSelected
+        countSelectHeader.value = newHeaderSelected.length
+      });
 
       Vue.onMounted(async () => {
         choices.status = new Choices(document.getElementById("choiceStatus"), {
@@ -354,7 +302,8 @@ style %}
           shouldSort: false,
         });
         // loadSheets();
-        selectSheet("Tasks");
+        await selectSheet("Tasks");
+        modelSelectedHeader.value = [...headerSelected.value];
       });
 
       return {
@@ -363,8 +312,10 @@ style %}
         data,
         filteredData,
         loading,
-        handleSelectSheet,
+        modelSelectedHeader,
+        headerSelected,
         filterData,
+        countSelectHeader,
         choices,
       };
     },
