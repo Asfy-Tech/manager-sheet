@@ -52,6 +52,9 @@ class Settings:
     TASK_FINISH_DATE = 'THỜI GIAN HOÀN THÀNH'
     TASK_USER = 'PHỤ TRÁCH'
     TASK_STATUS_SUCCESS = 'Ðã hoàn thành'
+
+    # Upload
+    UPLOAD_FOLDER = "uploads"
     
 
 settings = Settings()
