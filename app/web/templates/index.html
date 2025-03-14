@@ -109,6 +109,7 @@ block style %}
     color: #155724;
   }
 </style>
+
 {% endblock %} {% block content %}
 <div class="page-content" id="app">
   <div class="container-fluid">
@@ -377,10 +378,76 @@ block style %}
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
 
-        doc.text("Danh sách công việc", 14, 10);
-        doc.autoTable({ html: ".custom-table" });
+        // Đặt font mặc định là DejaVu Sans
+        doc.setFont("DejaVuSans"); // Đặt font DejaVuSans từ CDN
 
-        doc.save("Danh_sach_cong_viec.pdf");
+        // Tiêu đề
+        doc.setFontSize(12);
+        doc.setFont("DejaVuSans", "bold");
+        doc.text("Danh Sách Công Việc", 14, 10);
+
+        // Cấu hình bảng
+        const columns = [
+          { title: "Task ID", dataKey: "task_id" },
+          { title: "hello baby", dataKey: "representative" },
+          { title: "Công ty", dataKey: "company" },
+          { title: "Công việc", dataKey: "todo" },
+          { title: "Hạng mục", dataKey: "category" },
+          { title: "Deadline", dataKey: "deadline" },
+        ];
+
+        const rows = tasks.value.map((task) => {
+          return {
+            task_id: task.task_id,
+            representative: task.representative,
+            company: task.company,
+            todo: task.todo,
+            category: task.category,
+            deadline: task.deadline,
+          };
+        });
+
+        // Tạo bảng PDF
+        doc.autoTable({
+          head: [columns],
+          body: rows, // Sử dụng dữ liệu từ tasks.value
+          startY: 20, // Vị trí bắt đầu từ dưới tiêu đề
+          theme: "grid",
+          styles: {
+            font: "DejaVuSans", // Sử dụng DejaVuSans
+            fontSize: 11, // Cỡ chữ nội dung là 11
+            cellPadding: 4, // Thêm khoảng cách giữa các ô
+            valign: "middle", // Căn giữa nội dung ô
+          },
+          headStyles: {
+            fillColor: [0, 123, 255], // Màu header: xanh nước biển
+            textColor: [255, 255, 255], // Màu chữ trong header: trắng
+            fontSize: 12, // Cỡ chữ header là 12
+            fontStyle: "bold", // In đậm tiêu đề
+            halign: "center", // Căn giữa tiêu đề
+            lineWidth: 0.5, // Độ dày viền
+            lineColor: [0, 0, 0], // Màu viền
+          },
+          columnStyles: {
+            task_id: { fontStyle: "bold" },
+            representative: { fontStyle: "bold" },
+            company: { fontStyle: "bold" },
+            category: { fontStyle: "bold" },
+            deadline: { halign: "center" },
+          },
+          didParseCell: (data) => {
+            // Đánh dấu deadline quá hạn bằng màu đỏ nhạt
+            if (
+              data.column.dataKey === "deadline" &&
+              new Date(data.cell.raw) < new Date()
+            ) {
+              data.cell.styles.fillColor = [255, 204, 204]; // Màu đỏ nhạt
+            }
+          },
+        });
+
+        // Lưu file PDF
+        doc.save("Danh_Sach_Cong_Viec.pdf");
       };
 
       Vue.onMounted(() => {
