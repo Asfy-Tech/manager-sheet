@@ -1,5 +1,5 @@
 {% extends "layouts/app.html" %} {% block title %}Danh sách thông báo{% endblock
-%} {% block style %} {% endblock %} {% block content %}
+%} {% block style %}
 <style>
   .my-height {
     height: 400px;
@@ -8,7 +8,83 @@
   .h-100 {
     height: 100% !important;
   }
+  
+  /* CSS cho kiểu Telegram */
+  .telegram-message {
+    border-radius: 12px;
+    background-color: #f0f2f5;
+    padding: 16px;
+    margin-bottom: 15px;
+    position: relative;
+    border-left: 4px solid #2AABEE;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  }
+  
+  .telegram-message .message-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 0.85rem;
+    color: #6c757d;
+  }
+  
+  .telegram-message .message-content {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    white-space: pre-line;
+    line-height: 1.5;
+  }
+  
+  .telegram-message h5 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  
+  .telegram-message .message-content p {
+    margin-bottom: 8px;
+  }
+  
+  .telegram-message .message-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 12px;
+    font-size: 0.85rem;
+  }
+  
+  .telegram-message .message-actions {
+    display: flex;
+    gap: 10px;
+  }
+  
+  /* Telegram buttons */
+  .telegram-btn {
+    border-radius: 18px;
+    padding: 6px 12px;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  
+  /* Emoji support */
+  .emoji {
+    display: inline-block;
+    margin-right: 4px;
+  }
+  
+  /* Emulate Telegram text styling */
+  .bold-text {
+    font-weight: 700;
+  }
+  
+  .message-content ul {
+    padding-left: 20px;
+    margin-bottom: 10px;
+  }
+  
+  .message-content li {
+    margin-bottom: 5px;
+  }
 </style>
+{% endblock %} {% block content %}
 <div class="page-content" id="app">
   <div class="container-fluid">
     <!-- start page title -->
@@ -41,7 +117,7 @@
           </div>
           <div class="col-sm-8 text-end">
             <div class="handle-add">
-              <button class="btn btn-success addMembers-modal" data-bs-toggle="modal" data-bs-target="#addmemberModal"><i class="ri-add-fill me-1 align-bottom"></i> Add Notification</button>
+              <button class="btn btn-success addMembers-modal" data-bs-toggle="modal" data-bs-target="#addmemberModal"><i class="ri-add-fill me-1 align-bottom"></i> Thêm mới thông báo</button>
             </div>
           </div>
         </div>
@@ -54,41 +130,60 @@
           <div id="teamlist">
             <div class="team-list grid-view-filter row">
             
-                <div class="card team-box">
-                  <div class="card-body p-0">
-                    <div class="row align-items-center team-row">
-                      <div class="w-100 my-height">
-                        <div class="h-100">
-                          <!-- Top 1 -->
-                        </div>
-                      </div>
-                      <div class="col" v-for="notification in notifications" :key="notification.id">
-                        <div class="team-profile-img px-4 mt-0" style="height: 80px; overflow: hidden; text-overflow: ellipsis;">
-                          <h5>{{ notification?.title }}</h5>
-                          <p class="text-muted member-designation mb-0 text-justify" v-html="notification.content"></p>
-                        </div>
-                      </div>
-                      <div class="col-lg-4 col">
-                        <div class="row text-muted text-center">
-                          <p>
-                            Last Activate: {{ formatDate(notification?.created_at) }}
-                          </p>
-                        </div>
-                      </div>
-                      <div class="col-lg-2 col">
-                        <div class="text-end d-flex">
-                          <a
-                            href="pages-profile.html"
-                            class="btn btn-light view-btn"
-                            >Details</a
-                          >
-                          <button>Aps dung</button>
-                        </div>
-                      </div>
+              <div class="col" v-if="loading">
+                <div class="card">
+                  <div class="card-body text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3">Đang tải dữ liệu...</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col" v-else-if="notifications.length === 0">
+                <div class="card">
+                  <div class="card-body text-center py-5">
+                    <div class="mb-4">
+                      <i class="ri-notification-off-line" style="font-size: 3rem; color: #ccc;"></i>
+                    </div>
+                    <h5 class="text-muted">Không có thông báo nào</h5>
+                    <p class="text-muted">Hãy tạo mới thông báo bằng cách nhấn vào nút "Add Notification"</p>
+                    <button class="btn btn-success mt-2" data-bs-toggle="modal" data-bs-target="#addmemberModal">
+                      <i class="ri-add-fill me-1 align-bottom"></i> Thêm thông báo mới
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col" v-else>
+                <div class="telegram-message" v-for="notification in notifications" :key="notification.id">
+                  <div class="message-header">
+                    <span>⏳ Thông báo</span>
+                    <span>{{ formatDate(notification?.created_at) }}</span>
+                  </div>
+                  
+                  <div class="message-content">
+                    <h5>{{ notification?.title }}</h5>
+                    <div v-html="notification.content"></div>
+                  </div>
+                  
+                  <div class="message-footer">
+                    <div class="message-meta">
+                      <small>Trạng thái: {{ notification.status === 1 ? 'Hoạt động' : 'Vô hiệu' }}</small>
+                    </div>
+                    <div class="message-actions">
+                      <button class="btn btn-light btn-sm telegram-btn me-2" @click="viewDetails(notification.id)">
+                        <i class="ri-eye-line me-1"></i> Chi tiết
+                      </button>
+                      <button class="btn btn-primary btn-sm telegram-btn" @click="applyNotification(notification.id)">
+                        <i class="ri-send-plane-fill me-1"></i> Gửi Telegram
+                      </button>
                     </div>
                   </div>
                 </div>
               </div>
+
             </div>
           </div>
         </div>
@@ -138,7 +233,7 @@
                </div>
                <div class="hstack mt-3 gap-2 justify-content-end">
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
-                <button type="submit" class="btn btn-success" id="addNewMember">Add Notification</button>
+                <button type="submit" class="btn btn-success" id="addNewMember">Thêm mới</button>
             </div>
             </div>
 
@@ -238,17 +333,23 @@
           isLoading.value = true;
           const notificationData = {
             title: create.value.title.trim(),
-            content: content
+            content: content,
+            status: 1 // Thêm status mặc định
           };
+          
+          console.log("Dữ liệu gửi đi:", notificationData);
 
           const response = await axios.post(
             "/api/telegrams/notifications",
             notificationData
           );
+          
+          console.log("Kết quả từ API:", response.data);
 
           if (response.data.success) {
             showToast("Thêm thông báo thành công!");
-            loadNotifications();
+            loadNotifications(); // Tải lại danh sách
+            
             // Reset form
             create.value = { title: "", content: "" };
             quillEditor.setText('');
@@ -276,6 +377,19 @@
         return moment(date).fromNow();
       }
 
+      // Thêm các hàm sau vào setup() function
+      function viewDetails(id) {
+        // Hiển thị chi tiết thông báo
+        showToast("Xem chi tiết thông báo ID: " + id);
+        // Có thể mở modal chi tiết ở đây
+      }
+
+      function applyNotification(id) {
+        // Xử lý logic gửi thông báo đến Telegram
+        showToast("Đang gửi thông báo đến Telegram...");
+        // Thêm API call để gửi thông báo tại đây
+      }
+
       // Khi component được mount
       Vue.onMounted(() => {
         loadNotifications();
@@ -288,7 +402,9 @@
         create,
         isLoading,
         submitCreate,
-        formatDate
+        formatDate,
+        viewDetails,          // Thêm hai hàm này
+        applyNotification
       };
     },
   });
