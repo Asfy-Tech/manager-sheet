@@ -29,6 +29,10 @@
       rel="stylesheet"
       type="text/css"
     />
+      <!-- quill css -->
+      <link href="[[ url_for('static',filename='libs/quill/quill.core.css') ]]" rel="stylesheet" type="text/css" />
+      <link href="[[ url_for('static',filename='libs/quill/quill.bubble.css') ]]" rel="stylesheet" type="text/css" />
+      <link href="[[ url_for('static',filename='libs/quill/quill.snow.css') ]]" rel="stylesheet" type="text/css" />
     <!-- Icons Css -->
     <link
       href="[[ url_for('static',filename='css/icons.min.css') ]]"
@@ -445,6 +449,14 @@
                   <i class="ri-user-3-line"></i>
                   <!-- Thay icon danh sách nhân sự -->
                   <span data-key="t-authentication">Danh sách nhân sự</span>
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a class="nav-link menu-link" href="/telegrams/notification">
+                  <i class=" ri-notification-badge-line"></i>
+                  <!-- Thay icon danh sách nhân sự -->
+                  <span data-key="t-authentication">Quản lý thông báo</span>
                 </a>
               </li>
             </ul>
@@ -1254,6 +1266,8 @@
     <script src="[[url_for('static',filename='js/pages/select2.min.js')]]"></script>
     <script src="[[url_for('static',filename='js/pages/select2.init.js')]]"></script>
     <script src="[[ url_for('static',filename='libs/apexcharts/apexcharts.min.js') ]]"></script>
+    <script src="[[ url_for('static',filename='libs/quill/quill.min.js') ]]"></script>
+    <script src="[[ url_for('static',filename='js/pages/form-editor.init.js') ]]"></script>
     <!-- <script src="[[ url_for('static',filename='js/pages/dashboard-projects.init.js') ]]"></script> -->
     <script src="[[ url_for('static',filename='js/app.js') ]]"></script>
     <script src="[[ url_for('static',filename='js/custom.js') ]]"></script>

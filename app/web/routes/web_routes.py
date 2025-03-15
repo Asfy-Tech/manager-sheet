@@ -22,6 +22,9 @@ def settings():
 @routes.route("/telegrams/users", methods=["GET"]) 
 def telegrams_users():
     return render_template('telegrams/users.html')
+@routes.route("/telegrams/notification", methods=["GET"]) 
+def telegrams_notification():
+    return render_template('telegrams/notification.html')
 
 @routes.route("/sheets/<int:id>", methods=["GET"]) 
 def watch_sheet_detail(id):
