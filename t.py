@@ -1,76 +1,74 @@
 
-from app.monitors.file_watcher import FileWatcher
-watcher = FileWatcher(interval=30)
-watcher._check_files()
+# from app.monitors.file_watcher import FileWatcher
+# watcher = FileWatcher(interval=30)
+# watcher._check_files()
 
-# # # from app.models.base import Base, engine
-# # from app.models.telegram_message import TelegramMessage
+# from app.models.base import Base, engine
+from app.models.telegram_message import TelegramMessage
 # # # from app.models.telegram_users import TelegramUser
 # # # from app.models.users import User
 # # # from app.models.companies import Companies
 # # # from app.models.notifications import Notification
-# # # from app.models.tasks import Task
-# # # Base.metadata.create_all(engine)
-# # # from config import hash_password
+from app.models.notificationw import Notifications
+# Base.metadata.create_all(engine)
+# from config import hash_password, check_password
 # # # from datetime import datetime
 
-# # # User.create(
-# # #     name="Phạm Văn Hùng",
-# # #     email="supperment",
-# # #     password=hash_password("hungpv"),
-# # #     role="admin",
-# # #     status=True,
-# # #     avatar="https://example.com/avatar.jpg",
-# # #     last_login=datetime.utcnow()
-# # # )
-# # # # admins = TelegramUser.get(role=1)
-# # # # print(len(admins))
-
-# from googleapiclient.discovery import build
-# from google.oauth2 import service_account
-# import json
-# def dd(data):
-#     """In ra dữ liệu dưới dạng JSON đẹp"""
-#     print(json.dumps(data, indent=4, ensure_ascii=False))
-
-# # Cấu hình Google API
-# SERVICE_ACCOUNT_FILE = "credentials.json"
-# SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
-
-# def get_sheet_values(spreadsheet_id, sheet_name):
-#     """Lấy dữ liệu từ Google Sheets, bao gồm cả đường link nếu có."""
-#     creds = service_account.Credentials.from_service_account_file(
-#         SERVICE_ACCOUNT_FILE, scopes=SCOPES
-#     )
-#     service = build("sheets", "v4", credentials=creds)
-
-#     # Lấy dữ liệu có cả hyperlink
-#     sheet = service.spreadsheets().get(spreadsheetId=spreadsheet_id, ranges=sheet_name, includeGridData=True).execute()
-
-#     values = []
-#     for row in sheet["sheets"][0]["data"][0]["rowData"]:
-#         row_values = []
-#         for cell in row.get("values", []):
-#             if "hyperlink" in cell:
-#                 # Nếu ô có hyperlink, bọc trong thẻ <a>
-#                 link = cell["hyperlink"]
-#                 text = cell.get("formattedValue", link)
-#                 row_values.append(f"<a href='{link}' target='_blank'>{text}</a>")
-#             else:
-#                 # Nếu không có link, trả về giá trị bình thường
-#                 row_values.append(cell.get("formattedValue", ""))
-#         values.append(row_values)
-
-#     return values
-
-# # Thông tin Google Sheet
-# spreadsheet_id = "1ChRpSsLIC6QVhl87I4Jlb7sz-DldvAShE-BdHq29uEU"
-# sheet_name = "Tasks"
-
-# # Gọi hàm để lấy dữ liệu
-# values = get_sheet_values(spreadsheet_id, sheet_name)
-
-# filtered_data = [row for row in values if any(cell.strip() for cell in row)]
-
-# for row in filtered_data:
-#     dd(row)
+template = Notifications.find(1)
+task = TelegramMessage.find(45)
+task2 = TelegramMessage.find(46)
+send = {
+  "HUNGPV_MKT": {
+    "late": [
+      {
+        "task": task,
+        "sheet": {
+          "TASK_ID": "TASK_e666a28c",
+          "HẠNG MỤC": "Thiết kế các ấn phẩm của Marketing",
+          "VIỆC CẦN LÀM": "Helo san pham 123",
+          "YÊU CẦU CÔNG VIỆC": "Hội hoa xen ",
+          "PHỤ TRÁCH": "HUNGPV_MKT",
+          "HỖ TRỢ": "CRYSTAL SPOON",
+          "TRẠNG THÁI": "Đang thực hiện",
+          "START": "",
+          "DEADLINE": "07/03/2025",
+          "THÀNH PHẨM": "",
+          "DUYỆT": "FALSE",
+          "GHI CHÚ": "",
+          "CÔNG TY": "Add Today CT"
+        }
+      }
+    ],
+    "today": [
+      {
+        "task": task2,
+        "sheet": {
+          "TASK_ID": "TASK_8f25a489",
+          "HẠNG MỤC": "Tạo hiệu ứng đám đông",
+          "VIỆC CẦN LÀM": "Booking Review",
+          "YÊU CẦU CÔNG VIỆC": "Tạo hiệu ứng trên facebook bằng cách book bài đăng đến từ những fb nhiều tương tác bạn bè thật.",
+          "PHỤ TRÁCH": "Ninh Loan",
+          "HỖ TRỢ": "",
+          "TRẠNG THÁI": "Tạm hoãn",
+          "START": "",
+          "DEADLINE": "14/03/2025",
+          "THÀNH PHẨM": "",
+          "DUYỆT": "",
+          "GHI CHÚ": "",
+          "CÔNG TY": "Add Today CT"
+        }
+      }
+    ],
+    "future": [],
+    "is_admin": True
+  }
+}
+from app.services.bot_telegram import BotFather
+bot = BotFather()
+bot.send_message(5882159790, '<b>Bold</b>', parse_mode="HTML")
+bot.send_message(5882159790, '<i>Italic</i>', parse_mode="HTML")
+bot.send_message(5882159790, '<u>Underline</u>', parse_mode="HTML")
+bot.send_message(5882159790, '<a href="https://example.com">Link</a>', parse_mode="HTML")
+bot.send_message(5882159790, '<code>Code</code>', parse_mode="HTML")
+bot.send_message(5882159790, '<pre>Preformatted</pre', parse_mode="HTML")
+# bot._send_message_for_user(send)

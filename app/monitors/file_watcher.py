@@ -192,12 +192,15 @@ class FileWatcher:
         self._messages = {'late': [], 'today': [], 'future': []}
         for company in companies:
             try:
+                print(f'Start company: {company.id}')
                 link = company.sheet_link
                 res = gg_sheets.get_data_from_link(link, 'Tasks', formatJson=True)
+                print(f'Read success company: {company.id}')
                 if res is None:
                     company.update(status='deactive')
                     raise Exception('Không thể đọc dữ liệu!')
                 company.update(status='active')
+                print(f'-> Get data success company: {company.id}')
                 headers = res.get('headers')
                 data = res.get('data')
                 lower_headers = [h.upper() for h in headers]
@@ -205,6 +208,7 @@ class FileWatcher:
                     company.update(status='deactive')
                     raise Exception(f'Cột: {settings.TASK_ID} hoặc {settings.TASK_STATUS} không tồn tại!')
                 
+                print(f'-><- Yes data success company: {company.id}')
                 for dt in data:
                     if dt.get(settings.TASK_ID):
                         dt['CÔNG TY'] = company.name
@@ -228,7 +232,7 @@ class FileWatcher:
     def start(self):
         while True:
             self._check_files()
-            for i in range(180, 0, -1):
+            for i in range(300, 0, -1):
                 print(f'Còn: {i}s')
                 time.sleep(1)
 
