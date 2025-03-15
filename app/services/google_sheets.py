@@ -257,7 +257,7 @@ class GoogleSheets:
                         if formatJson:
                             row_values.append({"text": text, "link": link})
                         else:
-                            row_values.append(f"<a href='{link}' target='_blank'>{text}</a>")
+                            row_values.append(f"<a href='{link}' target='_blank'><i><u>{text}</u></i></a>")
                     else:
                         # Nếu không có link, trả về giá trị bình thường
                         row_values.append(cell.get("formattedValue", ""))

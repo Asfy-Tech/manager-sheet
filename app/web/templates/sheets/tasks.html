@@ -204,29 +204,25 @@ style %}
               ></div>
             </div>
           </div>
-          <div v-else-if="usersTelegram.length === 0" class="text-center py-1">
-            <label
-              class="dropdown-item cursor-pointer d-flex align-items-center gap-3"
-            >
-              <i class="fas fa-exclamation-circle text-danger"></i>
-              Không có người dùng
-            </label>
-          </div>
-          <div v-else>
-              <div>
-                  <div class="user-item" v-for="(item, idx) in usersTelegram" :key="idx">
-                    <label :for="`user_tele_${item.chat_id}`"
-                      class="dropdown-item cursor-pointer d-flex align-items-center gap-3">
-                      <input v-model="modelSelectedUserTelegram" :value="item.chat_id"
-                          :id="`user_tele_${item.chat_id}`" type="checkbox" />
-                      {{ item.name }}
-                  </label>
-                  </div>
-              </div>
-              <div>
-                  <textarea v-model="messageContent" class="form-control mt-2" rows="3"
-                      placeholder="Nhập nội dung tin nhắn..."></textarea>
-              </div>
+          <div>
+            <div>
+              <select
+                v-model="modelSelectedUserTelegram"
+                id="userTelegrams"
+                multiple
+                class="form-select"
+              >
+                <option value="">Chọn người nhận...</option>
+              </select>
+            </div>
+            <div>
+              <textarea
+                v-model="messageContent"
+                class="form-control mt-2"
+                rows="3"
+                placeholder="Nhập nội dung tin nhắn..."
+              ></textarea>
+            </div>
           </div>
         </div>
         <div class="modal-footer">
@@ -283,7 +279,6 @@ style %}
         show: false,
         submit: false,
       });
-      const usersTelegram = Vue.ref([]);
       const modelSelectedHeader = Vue.ref([]);
       const modelSelectedUserTelegram = Vue.ref([]);
       const defaultStatus = [
@@ -295,6 +290,7 @@ style %}
 
       const choices = Vue.reactive({
         sheet: null,
+        userTelegram: null,
         company: null,
         user: null,
         status: null,
@@ -375,7 +371,7 @@ style %}
             });
             headerSelected.value = newHeaders;
           }
-          modelSelectedHeader.value = headerSelected.value
+          modelSelectedHeader.value = headerSelected.value;
           countSelectHeader.value = headerSelected.value.length;
           data.value = res.data?.data;
           filteredData.value = res.data?.data;
@@ -469,27 +465,40 @@ style %}
           document.getElementById("choiceCompany"),
           { shouldSort: false }
         );
+        choices.userTelegram = new Choices(
+          document.getElementById("userTelegrams"),
+          {
+            removeItemButton: true,
+            shouldSort: false,
+            placeholder: true,
+            placeholderValue: "Chọn người nhận...",
+            searchEnabled: true,
+          }
+        );
         choices.user = new Choices(document.getElementById("choiceUser"), {
           shouldSort: false,
         });
         // loadSheets();
         await selectSheet("Tasks");
-
       });
 
       const prepareSendTelegram = async () => {
         await loadListUsersTelegram();
         messageContent.value = "";
         modelSelectedUserTelegram.value = [];
+        choices.userTelegram.removeActiveItems();
       };
-
 
       async function loadListUsersTelegram() {
         loadingTelegram.load = true;
         try {
           let res = await axios.get("/api/telegrams/users");
           if (res.status == 200) {
-            usersTelegram.value = res.data?.data;
+            dt = res.data?.data.map((user) => ({
+              value: user.chat_id,
+              label: user.name,
+            }));
+            choices.userTelegram.setChoices(dt, "value", "label", true);
           }
         } catch (e) {
           console.log(`Lỗi khi get user: ${e}`);
@@ -510,6 +519,10 @@ style %}
       };
 
       async function sendMessage() {
+        if (modelSelectedUserTelegram.value.length == 0){
+          showToast(`Vui lòng chọn người nhận!`, "error");
+          return
+        }
         loadingTelegram.submit = true;
         try {
           const table = document.getElementById("table-data-sheets");
@@ -529,6 +542,7 @@ style %}
           if (res.status === 200 && res.data.success) {
             showToast(res.data.message || "Ảnh đã gửi thành công!", "success");
             modelSelectedUserTelegram.value = [];
+            choices.userTelegram.removeActiveItems();
           } else {
             showToast(res.data.error || "Có lỗi xảy ra khi gửi ảnh!", "error");
           }
@@ -536,7 +550,12 @@ style %}
           const modalInstance = bootstrap.Modal.getInstance(modalElement);
           modalInstance.hide();
         } catch (e) {
-          showToast(`Lỗi khi gửi ảnh: ${e.message || e}`, "error");
+          if(e?.response?.status == 500){
+            let ids = e.response.data?.errors.map(item => item.chat_id);
+            let userError = choices.userTelegram._currentState.choices.filter(item => ids.includes(item.value)).map(item => item.label).join(', ')
+            e.message = `Không thể gửi được cho: ${userError}`
+          }
+          showToast(e.message || e);
         }
         loadingTelegram.submit = false;
       }
@@ -555,7 +574,6 @@ style %}
         sendMessage,
         choices,
         prepareSendTelegram,
-        usersTelegram,
         modelSelectedUserTelegram,
         loadingTelegram,
       };
