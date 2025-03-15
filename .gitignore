@@ -26,3 +26,4 @@ logs/*
 
 # Static files
 # static/libs/
+node_modules/
