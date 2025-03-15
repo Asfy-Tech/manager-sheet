@@ -1,9 +1,19 @@
 from . import routes
-from flask import render_template, abort, request, jsonify
+from flask import render_template, abort, request, jsonify,session
 import json
 import os
-
+import bcrypt
+from app.models.users import User
 CONFIG_FILE_PATH = "credentials.json"
+
+# Hàm kiểm tra mật khẩu
+def check_password(plain_password, hashed_password):
+    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
+
+# Hàm hash mật khẩu mới
+def hash_password(password):
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
 
 @routes.route("/api/settings/", methods=["GET"])
 def get_settings():
@@ -63,3 +73,29 @@ def upload_settings():
             "message": f"Lỗi: {str(e)}"
         }), 500
 
+@routes.route("/api/settings/change-password", methods=["POST"])
+def change_password():
+    try:
+        data = request.get_json()
+        current_password = data.get("currentPassword")
+        new_password = data.get("newPassword")
+
+        # Hash mật khẩu mới
+        new_password_hash = hash_password(new_password)
+        print("DEBUG - Received data:", data)
+
+        user = User.find(session.get("user").get('id'))
+        user.password = new_password_hash
+        user.save()
+
+        return jsonify({
+            "status": "success",
+            "message": "Đổi mật khẩu thành công",
+            "data": data
+        })
+
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": f"Lỗi: {str(e)}"
+        }), 500

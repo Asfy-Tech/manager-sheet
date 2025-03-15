@@ -1,12 +1,9 @@
-{% extends "layouts/app.html" %} {% block title %}Settings{% endblock %} {%
-block style %} {% endblock %} {% block content %}
+{% extends "layouts/app.html" %} {% block title %}Settings{% endblock %} {% block style %} {% endblock %} {% block content %}
 <div class="page-content" id="app">
   <div class="container-fluid">
     <div class="row">
       <div class="col-12">
-        <div
-          class="page-title-box d-sm-flex align-items-center justify-content-between"
-        >
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
           <h4 class="mb-sm-0">Cài đặt</h4>
         </div>
       </div>
@@ -15,18 +12,15 @@ block style %} {% endblock %} {% block content %}
       <div class="col-xxl-12">
         <div class="card">
           <div class="card-header">
-            <ul
-              class="nav nav-tabs-custom rounded card-header-tabs border-bottom-0"
-              role="tablist"
-            >
+            <ul class="nav nav-tabs-custom rounded card-header-tabs border-bottom-0" role="tablist">
               <li class="nav-item">
-                <a
-                  class="nav-link active"
-                  data-bs-toggle="tab"
-                  href="#configUpload"
-                  role="tab"
-                >
+                <a class="nav-link active" data-bs-toggle="tab" href="#configUpload" role="tab">
                   <i class="fas fa-cog"></i> Cấu hình
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#configPassword" role="tab">
+                  <i class="fas fa-key"></i> Đổi mật khẩu
                 </a>
               </li>
             </ul>
@@ -39,16 +33,8 @@ block style %} {% endblock %} {% block content %}
                   <div class="row">
                     <div class="col-lg-12">
                       <div class="mb-3">
-                        <label for="configFile" class="form-label"
-                          >Tải lên cấu hình google api</label
-                        >
-                        <input
-                          type="file"
-                          class="form-control"
-                          id="configFile"
-                          @change="handleFileUpload"
-                          accept=".json"
-                        />
+                        <label for="configFile" class="form-label">Tải lên cấu hình google api</label>
+                        <input type="file" class="form-control" id="configFile" @change="handleFileUpload" accept=".json" />
                       </div>
                     </div>
                     <div class="col-lg-12">
@@ -60,8 +46,6 @@ block style %} {% endblock %} {% block content %}
                     </div>
                   </div>
                 </form>
-
-                <!-- Configuration Display -->
                 <div
                   class="row mt-4"
                   v-if="Object.keys(credentials).length > 0"
@@ -80,6 +64,89 @@ block style %} {% endblock %} {% block content %}
                     </div>
                   </div>
                 </div>
+              </div>
+
+              <div class="tab-pane" id="configPassword" role="tabpanel">
+                <h5 class="mb-4">Đổi mật khẩu</h5>
+                <form @submit.prevent="changePassword">
+                  <div class="mb-3">
+                    <label for="password" class="form-label"
+                      >Mật khẩu hiện tại</label
+                    >
+                    <div class="input-group">
+                      <input
+                        type="password" 
+                        class="form-control"
+                        id="currentPassword"
+                        v-model="password.password"
+                        required
+                      />
+                      <button
+                        type="button"
+                        class="border-0 bg-transparent d-flex align-items-center justify-content-center"
+                        @click="togglePasswordVisibility('password')"
+                        tabindex="-1"
+                      >
+                        <i
+                          :class="passwordVisibility.password ? 'fas fa-eye-slash text-dark fs-5' : 'fas fa-eye text-dark fs-5'"
+                        ></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label for="newPassword" class="form-label"
+                      >Mật khẩu mới</label
+                    >
+                    <div class="input-group">
+                      <input
+                        type="password"
+                        class="form-control"
+                        id="newPassword"
+                        v-model="password.newPassword"
+                        required
+                      />
+                      <button
+                        type="button"
+                        class="border-0 bg-transparent d-flex align-items-center justify-content-center"
+                        @click="togglePasswordVisibility('newPassword')"
+                        tabindex="-1"
+                      >
+                        <i
+                          :class="passwordVisibility.newPassword ? 'fas fa-eye-slash text-dark fs-5' : 'fas fa-eye text-dark fs-5'"
+                        ></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label for="confirmPassword" class="form-label"
+                      >Xác nhận mật khẩu mới</label
+                    >
+                    <div class="input-group">
+                      <input
+                        type="password"
+                        class="form-control"
+                        id="confirmPassword"
+                        v-model="password.confirmPassword"
+                        required
+                      />
+                      <button
+                        type="button"
+                        class="border-0 bg-transparent d-flex align-items-center justify-content-center"
+                        @click="togglePasswordVisibility('confirmPassword')"
+                        tabindex="-1"
+                      >
+                        <i
+                          :class="passwordVisibility.confirmPassword ? 'fas fa-eye-slash text-dark fs-5' : 'fas fa-eye text-dark fs-5'"
+                        ></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary">
+                      Đổi mật khẩu
+                    </button>
+                  </div>
+                </form>
               </div>
             </div>
           </div>
@@ -107,7 +174,10 @@ block style %} {% endblock %} {% block content %}
           }
         } catch (e) {
           console.error(e);
-          showToast(e?.response?.data?.message || "Error loading configuration", "error");
+          showToast(
+            e?.response?.data?.message || "Error loading configuration",
+            "error"
+          );
         }
       };
 
@@ -172,12 +242,75 @@ block style %} {% endblock %} {% block content %}
         return value;
       };
 
+      const password = Vue.ref({
+        password: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+
+      const changePassword = async () => {
+        if (!password.value.password) {
+          showToast("Vui lòng nhập mật khẩu hiện tại", "error");
+          return;
+        }
+
+        if (password.value.newPassword.length < 6) {
+          showToast("Mật khẩu mới phải có ít nhất 6 ký tự", "error");
+          return;
+        }
+
+        if (password.value.newPassword !== password.value.confirmPassword) {
+          showToast("Mật khẩu mới và xác nhận mật khẩu không khớp", "error");
+          return;
+        }
+
+        try {
+          const res = await axios.post("/api/settings/change-password", {
+            currentPassword: password.value.password,
+            newPassword: password.value.newPassword,
+          });
+          
+          console.log(res);
+          if (res.status === 200) {
+            showToast("Đổi mật khẩu thành công", "success");
+            password.value.password = "";
+            password.value.newPassword = "";
+            password.value.confirmPassword = "";
+          } else {
+            showToast(res.data.message || "Đổi mật khẩu thất bại", "error");
+          }
+        } catch (e) {
+          console.error(e);
+          showToast(
+            e?.response?.data?.message || "Lỗi khi đổi mật khẩu",
+            "error"
+          );
+        }
+      };
+
+      const passwordVisibility = Vue.ref({
+        password: false,
+        newPassword: false,
+        confirmPassword: false,
+      });
+
+      const togglePasswordVisibility = (field) => {
+        passwordVisibility.value[field] = !passwordVisibility.value[field];
+        const input = document.getElementById(field);
+        if (input)
+          input.type = passwordVisibility.value[field] ? "text" : "password";
+      };
+
       return {
         handleFileUpload,
         uploadConfig,
         credentials,
         formatLabel,
         formatValue,
+        password,
+        changePassword,
+        passwordVisibility,
+        togglePasswordVisibility,
       };
     },
   });
