@@ -8,40 +8,37 @@ import os
 
 def configure_logging(app):
     try:
-        # Tạo thư mục logs nếu chưa tồn tại
         log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
         if not os.path.exists(log_dir):
             os.makedirs(log_dir, exist_ok=True)
 
         log_file = os.path.join(log_dir, 'app.log')
 
-        # Xóa handlers cũ
         for handler in app.logger.handlers[:]:
             app.logger.removeHandler(handler)
             handler.close()
 
-        # Tạo file handler mới
         file_handler = RotatingFileHandler(
-            log_file,
-            maxBytes=1024 * 1024,  # 1MB
-            backupCount=10,
-            delay=True,  # Delay creation until first write
-            encoding='utf-8'
+            log_file, maxBytes=1024 * 1024, backupCount=10, delay=True, encoding='utf-8'
         )
-        
         file_handler.setFormatter(logging.Formatter(
             '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
         ))
         file_handler.setLevel(logging.INFO)
-        
-        # Add handlers
+
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+        console_handler.setLevel(logging.DEBUG)
+
         app.logger.addHandler(file_handler)
-        app.logger.setLevel(logging.INFO)
-        
+        app.logger.addHandler(console_handler)
+        app.logger.setLevel(logging.DEBUG)  # Đặt mức log phù hợp
+
         return True
     except Exception as e:
         print(f"Error configuring logging: {e}")
         return False
+
 
 def create_app():
     app = Flask(

@@ -229,6 +229,7 @@ class FileWatcher:
         while True:
             self._check_files()
             for i in range(180, 0, -1):
+                print(f'Còn: {i}s')
                 time.sleep(1)
 
     def stop(self):
