@@ -385,15 +385,11 @@ block style %}
           const worksheet = workbook.addWorksheet("Danh Sách Công Việc", {
             properties: { defaultRowHeight: 20 }, // Chiều cao mặc định
           });
-
-          worksheet.columns = [
-            { header: "Task ID", key: "task_id" },
-            { header: "Người phụ trách", key: "representative" },
-            { header: "Công ty", key: "company" },
-            { header: "Công việc", key: "todo" },
-            { header: "Hạng mục", key: "category" },
-            { header: "Deadline", key: "deadline" },
-          ];
+          // Tạo cột cho worksheet dựa trên headerSelected và headerKeyMap
+          worksheet.columns = headerSelected.value.map(title => ({
+            header: title, // Tên cột trong Excel
+            key: headerKeyMap[title] // Key tương ứng trong dữ liệu
+          }));
 
           const headerRow = worksheet.getRow(1);
           worksheet.columns.forEach((col) => {
@@ -428,14 +424,17 @@ block style %}
 
           // Duyệt danh sách task và thêm vào file Excel
           tasks.value.forEach((task, index) => {
-            const row = worksheet.addRow({
-              task_id: task.task_id,
-              representative: task.representative,
-              company: task.company,
-              todo: task.todo,
-              category: task.category,
-              deadline: task.deadline,
+            const rowData = {};
+            // Duyệt qua các tiêu đề được chọn và lấy dữ liệu từ task
+            headerSelected.value.forEach(header => {
+              const key = headerKeyMap[header]; // Lấy key tương ứng
+              if (key) {
+                rowData[key] = task[key]; // Gán giá trị vào rowData
+              }
             });
+
+            // Thêm hàng vào worksheet
+            const row = worksheet.addRow(rowData);
 
             row.eachCell((cell, colIndex) => {
               // Font cho "Task ID", "Công ty", "Hạng mục" in đậm
@@ -505,78 +504,66 @@ block style %}
           link.click();
           document.body.removeChild(link);
         } catch (error) {
-          console.error("Lỗi khi xuất file Excel:", error);
+          console.error("Lỗi khi xuất Excel:", error);
         }
       };
+
 
       const exportPDF = () => {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
 
-        // Đặt font mặc định là DejaVu Sans
-        doc.setFont("DejaVuSans"); // Đặt font DejaVuSans từ CDN
+        // Nhúng font nếu bạn đã tải nó
+        doc.setFont("times", "normal");
 
         // Tiêu đề
         doc.setFontSize(12);
-        doc.setFont("DejaVuSans", "bold");
+        doc.setFont("helvetica", "bold");
         doc.text("Danh Sách Công Việc", 14, 10);
 
         // Cấu hình bảng
-        const columns = [
-          { title: "Task ID", dataKey: "task_id" },
-          { title: "hello baby", dataKey: "representative" },
-          { title: "Công ty", dataKey: "company" },
-          { title: "Công việc", dataKey: "todo" },
-          { title: "Hạng mục", dataKey: "category" },
-          { title: "Deadline", dataKey: "deadline" },
-        ];
+        const columns = headerSelected.value.map(title => ({
+          title: title, // Tên cột trong Excel
+          dataKey: headerKeyMap[title] // Key tương ứng trong dữ liệu
+        }));
 
         const rows = tasks.value.map((task) => {
-          return {
-            task_id: task.task_id,
-            representative: task.representative,
-            company: task.company,
-            todo: task.todo,
-            category: task.category,
-            deadline: task.deadline,
-          };
+          const rowData = {};
+          headerSelected.value.forEach(header => {
+            const key = headerKeyMap[header]; // Lấy key tương ứng
+            if (key) {
+              rowData[key] = task[key] ?? ""; // Tránh lỗi undefined
+            }
+          });
+          return rowData;
         });
 
         // Tạo bảng PDF
         doc.autoTable({
-          head: [columns],
-          body: rows, // Sử dụng dữ liệu từ tasks.value
-          startY: 20, // Vị trí bắt đầu từ dưới tiêu đề
+          head: [columns.map(col => col.title)], // Sửa để tránh lỗi
+          body: rows.map(row => columns.map(col => row[col.dataKey] || "")), // Format dữ liệu chuẩn
+          startY: 20,
           theme: "grid",
           styles: {
-            font: "DejaVuSans", // Sử dụng DejaVuSans
-            fontSize: 11, // Cỡ chữ nội dung là 11
-            cellPadding: 4, // Thêm khoảng cách giữa các ô
-            valign: "middle", // Căn giữa nội dung ô
+            fontSize: 11,
+            cellPadding: 4,
+            valign: "middle",
           },
           headStyles: {
-            fillColor: [0, 123, 255], // Màu header: xanh nước biển
-            textColor: [255, 255, 255], // Màu chữ trong header: trắng
-            fontSize: 12, // Cỡ chữ header là 12
-            fontStyle: "bold", // In đậm tiêu đề
-            halign: "center", // Căn giữa tiêu đề
-            lineWidth: 0.5, // Độ dày viền
-            lineColor: [0, 0, 0], // Màu viền
+            fillColor: [0, 123, 255],
+            textColor: [255, 255, 255],
+            fontSize: 12,
+            fontStyle: "bold",
+            halign: "center",
+            lineWidth: 0.5,
+            lineColor: [0, 0, 0],
           },
           columnStyles: {
-            task_id: { fontStyle: "bold" },
-            representative: { fontStyle: "bold" },
-            company: { fontStyle: "bold" },
-            category: { fontStyle: "bold" },
             deadline: { halign: "center" },
           },
           didParseCell: (data) => {
-            // Đánh dấu deadline quá hạn bằng màu đỏ nhạt
-            if (
-              data.column.dataKey === "deadline" &&
-              new Date(data.cell.raw) < new Date()
-            ) {
-              data.cell.styles.fillColor = [255, 204, 204]; // Màu đỏ nhạt
+            if (data.column.dataKey === "deadline" && new Date(data.cell.raw) < new Date()) {
+              data.cell.styles.fillColor = [255, 204, 204];
             }
           },
         });
@@ -584,6 +571,7 @@ block style %}
         // Lưu file PDF
         doc.save("Danh_Sach_Cong_Viec.pdf");
       };
+
 
       const selectSheet = async () => {
         const storedHeaders = localStorage.getItem("headers");
@@ -733,6 +721,7 @@ block style %}
         tasksFiltered.value = filterDataAfterReturn(tasks, headerSelected.value);
         // Cập nhật số lượng header đã chọn
         countSelectHeader.value = newHeaderSelected.length;
+        console.log(headerSelected);
       });
 
       Vue.onMounted(async () => {
