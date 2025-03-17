@@ -7,8 +7,8 @@ from app.models.users import User
 CONFIG_FILE_PATH = "credentials.json"
 
 # Hàm kiểm tra mật khẩu
-def check_password(plain_password, hashed_password):
-    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
+def check_password(hashed_password, plain_password):
+    return bcrypt.checkpw(plain_password.encode(), hashed_password.encode())
 
 # Hàm hash mật khẩu mới
 def hash_password(password):
@@ -80,18 +80,27 @@ def change_password():
         current_password = data.get("currentPassword")
         new_password = data.get("newPassword")
 
-        # Hash mật khẩu mới
-        new_password_hash = hash_password(new_password)
         print("DEBUG - Received data:", data)
 
         user = User.find(session.get("user").get('id'))
+
+        # Kiểm tra mật khẩu hiện tại có đúng không
+        if not check_password(user.password, current_password):
+            return jsonify({
+                "status": "error",
+                "message": "Mật khẩu hiện tại không đúng"
+            }), 400
+
+        # Hash mật khẩu mới
+        new_password_hash = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt()).decode()
+
+        # Cập nhật mật khẩu mới
         user.password = new_password_hash
         user.save()
 
         return jsonify({
             "status": "success",
-            "message": "Đổi mật khẩu thành công",
-            "data": data
+            "message": "Đổi mật khẩu thành công"
         })
 
     except Exception as e:

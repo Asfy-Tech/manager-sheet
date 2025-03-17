@@ -70,12 +70,10 @@
                 <h5 class="mb-4">Đổi mật khẩu</h5>
                 <form @submit.prevent="changePassword">
                   <div class="mb-3">
-                    <label for="password" class="form-label"
-                      >Mật khẩu hiện tại</label
-                    >
+                    <label for="password" class="form-label">Mật khẩu hiện tại</label>
                     <div class="input-group">
                       <input
-                        type="password" 
+                        :type="passwordVisibility.password ? 'text' : 'password'"
                         class="form-control"
                         id="currentPassword"
                         v-model="password.password"
@@ -93,13 +91,12 @@
                       </button>
                     </div>
                   </div>
+              
                   <div class="mb-3">
-                    <label for="newPassword" class="form-label"
-                      >Mật khẩu mới</label
-                    >
+                    <label for="newPassword" class="form-label">Mật khẩu mới</label>
                     <div class="input-group">
                       <input
-                        type="password"
+                        :type="passwordVisibility.newPassword ? 'text' : 'password'"
                         class="form-control"
                         id="newPassword"
                         v-model="password.newPassword"
@@ -117,13 +114,12 @@
                       </button>
                     </div>
                   </div>
+              
                   <div class="mb-3">
-                    <label for="confirmPassword" class="form-label"
-                      >Xác nhận mật khẩu mới</label
-                    >
+                    <label for="confirmPassword" class="form-label">Xác nhận mật khẩu mới</label>
                     <div class="input-group">
                       <input
-                        type="password"
+                        :type="passwordVisibility.confirmPassword ? 'text' : 'password'"
                         class="form-control"
                         id="confirmPassword"
                         v-model="password.confirmPassword"
@@ -142,12 +138,11 @@
                     </div>
                   </div>
                   <div class="d-flex justify-content-end">
-                    <button type="submit" class="btn btn-primary">
-                      Đổi mật khẩu
-                    </button>
+                    <button type="submit" class="btn btn-primary">Đổi mật khẩu</button>
                   </div>
                 </form>
               </div>
+              
             </div>
           </div>
         </div>
@@ -253,24 +248,38 @@
           showToast("Vui lòng nhập mật khẩu hiện tại", "error");
           return;
         }
-
+      
+        if (!password.value.newPassword) {
+          showToast("Vui lòng nhập mật khẩu mới", "error");
+          return;
+        }
+      
         if (password.value.newPassword.length < 6) {
           showToast("Mật khẩu mới phải có ít nhất 6 ký tự", "error");
           return;
         }
-
+      
+        // Kiểm tra mật khẩu mạnh
+        const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_]).{6,}$/;
+        if (!passwordRegex.test(password.value.newPassword)) {
+          showToast(
+            "Mật khẩu mới phải có ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt",
+            "error"
+          );
+          return;
+        }
+      
         if (password.value.newPassword !== password.value.confirmPassword) {
           showToast("Mật khẩu mới và xác nhận mật khẩu không khớp", "error");
           return;
         }
-
+      
         try {
           const res = await axios.post("/api/settings/change-password", {
             currentPassword: password.value.password,
             newPassword: password.value.newPassword,
           });
-          
-          console.log(res);
+      
           if (res.status === 200) {
             showToast("Đổi mật khẩu thành công", "success");
             password.value.password = "";
@@ -281,10 +290,7 @@
           }
         } catch (e) {
           console.error(e);
-          showToast(
-            e?.response?.data?.message || "Lỗi khi đổi mật khẩu",
-            "error"
-          );
+          showToast(e?.response?.data?.message || "Lỗi khi đổi mật khẩu", "error");
         }
       };
 
