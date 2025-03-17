@@ -39,7 +39,6 @@ def watch_sheet_detail(id):
             abort(404)
         return render_template('sheets/details.html', sheet_id=id, sheetInfo=sheet)
     except Exception as e:
-        print(e)
         abort(500)
 
 @routes.route("/api/logout", methods=["POST"])

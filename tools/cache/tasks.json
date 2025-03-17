@@ -6,9 +6,12 @@
         "YÊU CẦU CÔNG VIỆC": "",
         "PHỤ TRÁCH": "HUNGPV_MKT",
         "HỖ TRỢ": "",
-        "TRẠNG THÁI": "Đang thực hiện",
+        "TRẠNG THÁI": "Ðã hoàn thành",
         "START": "",
         "DEADLINE": "06/03/2025",
+        "THÀNH PHẨM": "",
+        "DUYỆT": "",
+        "GHI CHÚ": "",
         "CÔNG TY": "Add Today CT"
     },
     "TASK_2d0357b7": {
@@ -19,6 +22,11 @@
         "PHỤ TRÁCH": "Thành - MKT",
         "HỖ TRỢ": "",
         "TRẠNG THÁI": "Chưa bắt đầu",
+        "START": "",
+        "DEADLINE": "",
+        "THÀNH PHẨM": "",
+        "DUYỆT": "",
+        "GHI CHÚ": "",
         "CÔNG TY": "Add Today CT"
     },
     "TASK_4f0e00e6": {
@@ -31,20 +39,24 @@
         "TRẠNG THÁI": "Tạm hoãn",
         "START": "",
         "DEADLINE": "30/03/2025",
+        "THÀNH PHẨM": "",
+        "DUYỆT": "",
+        "GHI CHÚ": "",
         "CÔNG TY": "Add Today CT"
     },
     "TASK_e666a28c": {
         "TASK_ID": "TASK_e666a28c",
         "HẠNG MỤC": "Thiết kế các ấn phẩm của Marketing",
-        "VIỆC CẦN LÀM": "Thiết kế đồ cổ asfytech",
-        "YÊU CẦU CÔNG VIỆC": "",
+        "VIỆC CẦN LÀM": "Helo san pham 123",
+        "YÊU CẦU CÔNG VIỆC": "Hội hoa xen ",
         "PHỤ TRÁCH": "HUNGPV_MKT",
-        "HỖ TRỢ": "Hưng - MKT",
-        "TRẠNG THÁI": "Chưa bắt đầu",
+        "HỖ TRỢ": "CRYSTAL SPOON",
+        "TRẠNG THÁI": "Đang thực hiện",
         "START": "",
         "DEADLINE": "07/03/2025",
         "THÀNH PHẨM": "",
         "DUYỆT": "FALSE",
+        "GHI CHÚ": "",
         "CÔNG TY": "Add Today CT"
     },
     "TASK_b001a7de": {
@@ -52,9 +64,14 @@
         "HẠNG MỤC": "Fanpage Bánh Mì Xì Phố PHẠM HÙNG",
         "VIỆC CẦN LÀM": "Lập kênh Fanpage",
         "YÊU CẦU CÔNG VIỆC": "",
-        "PHỤ TRÁCH": "",
+        "PHỤ TRÁCH": "Phương Anh - MKT",
         "HỖ TRỢ": "",
-        "TRẠNG THÁI": "Ðã hoàn thành",
+        "TRẠNG THÁI": "Chưa bắt đầu",
+        "START": "",
+        "DEADLINE": "",
+        "THÀNH PHẨM": "",
+        "DUYỆT": "",
+        "GHI CHÚ": "",
         "CÔNG TY": "Add Today CT"
     },
     "TASK_90f8f405": {
@@ -65,18 +82,29 @@
         "PHỤ TRÁCH": "Phương Anh - MKT",
         "HỖ TRỢ": "Hưng - MKT",
         "TRẠNG THÁI": "Chưa bắt đầu",
+        "START": "",
+        "DEADLINE": "",
+        "THÀNH PHẨM": "",
+        "DUYỆT": "",
+        "GHI CHÚ": "",
         "CÔNG TY": "Add Today CT"
     },
     "TASK_79a6fb84": {
         "TASK_ID": "TASK_79a6fb84",
         "HẠNG MỤC": "TikTok",
         "VIỆC CẦN LÀM": "Sản xuất nội dung OKOK",
-        "YÊU CẦU CÔNG VIỆC": "Quay các content liên quan quá trình làm bánh, đóng gói, dịch vụ…",
+        "YÊU CẦU CÔNG VIỆC": "Xin chào mọi người, tôi là Hùng",
         "PHỤ TRÁCH": "Phương Anh - MKT ",
         "HỖ TRỢ": "",
-        "TRẠNG THÁI": "Đang thực hiện",
+        "TRẠNG THÁI": "Ðã hoàn thành",
         "START": "",
         "DEADLINE": "12/03/2025",
+        "THÀNH PHẨM": {
+            "text": "OK OKO",
+            "link": "https://facebook.com/"
+        },
+        "DUYỆT": "",
+        "GHI CHÚ": "",
         "CÔNG TY": "Add Today CT"
     },
     "TASK_72e3aeb9": {
@@ -86,9 +114,15 @@
         "YÊU CẦU CÔNG VIỆC": "Tặng 200 bánh mỳ dùng thử vào những ngày trước khai trương, trên các hội nhóm dành cho sinh viên…nhằm tạo hiệu ứng gây sự chú ý với người qua đường",
         "PHỤ TRÁCH": "Phương Anh - MKT",
         "HỖ TRỢ": "",
-        "TRẠNG THÁI": "Chưa bắt đầu",
+        "TRẠNG THÁI": "Ðã hoàn thành",
         "START": "",
         "DEADLINE": "13/03/2025",
+        "THÀNH PHẨM": {
+            "text": "Thành quả sau 1 ngày làm việc vất vả là bảng theo dõi",
+            "link": "https://facebook.com/"
+        },
+        "DUYỆT": "",
+        "GHI CHÚ": "",
         "CÔNG TY": "Add Today CT"
     },
     "TASK_131158c9": {
@@ -98,7 +132,12 @@
         "YÊU CẦU CÔNG VIỆC": "Gửi mail nội bộ gồm hình ảnh để CBNV Bolt review và check in",
         "PHỤ TRÁCH": "Phương Anh - MKT",
         "HỖ TRỢ": "",
-        "TRẠNG THÁI": "Ðã hoàn thành",
+        "TRẠNG THÁI": "Chưa bắt đầu",
+        "START": "",
+        "DEADLINE": "",
+        "THÀNH PHẨM": "",
+        "DUYỆT": "",
+        "GHI CHÚ": "",
         "CÔNG TY": "Add Today CT"
     },
     "TASK_8f25a489": {
@@ -111,6 +150,9 @@
         "TRẠNG THÁI": "Tạm hoãn",
         "START": "",
         "DEADLINE": "14/03/2025",
+        "THÀNH PHẨM": "",
+        "DUYỆT": "",
+        "GHI CHÚ": "",
         "CÔNG TY": "Add Today CT"
     },
     "TASK_507be7c1": {
@@ -121,6 +163,11 @@
         "PHỤ TRÁCH": "Ninh Loan",
         "HỖ TRỢ": "",
         "TRẠNG THÁI": "Chưa bắt đầu",
+        "START": "",
+        "DEADLINE": "",
+        "THÀNH PHẨM": "",
+        "DUYỆT": "",
+        "GHI CHÚ": "",
         "CÔNG TY": "Add Today CT"
     },
     "TASK_6e1b1ff8": {
@@ -130,17 +177,12 @@
         "YÊU CẦU CÔNG VIỆC": "Ăn bánh check in giảm 10%",
         "PHỤ TRÁCH": "Ninh Loan",
         "HỖ TRỢ": "",
-        "TRẠNG THÁI": "Ðã hoàn thành",
-        "CÔNG TY": "Add Today CT"
-    },
-    "TASK_936b7c92": {
-        "TASK_ID": "TASK_936b7c92",
-        "HẠNG MỤC": "Event",
-        "VIỆC CẦN LÀM": "Cá Không ăn Muối cá Ươn",
-        "YÊU CẦU CÔNG VIỆC": "Thử thách ăn 3 bánh bự chảng trong 15p được nhận 1.000.000. Nếu không hết sẽ trả tiền bánh là 200.000",
-        "PHỤ TRÁCH": "Phương Anh - MKT",
-        "HỖ TRỢ": "",
-        "TRẠNG THÁI": "Chưa bắt đầu",
+        "TRẠNG THÁI": "Đang thực hiện",
+        "START": "",
+        "DEADLINE": "",
+        "THÀNH PHẨM": "",
+        "DUYỆT": "",
+        "GHI CHÚ": "",
         "CÔNG TY": "Add Today CT"
     }
 }

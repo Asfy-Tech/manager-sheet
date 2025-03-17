@@ -408,6 +408,8 @@ style %}
 
           // initEventSource(sheetName);
         } catch (e) {
+          showToast('Lỗi khi tải dữ liệu, đang thử tải lại...', 'error')
+          await selectSheet('Tasks');
           console.error("Error fetching sheet data:", e);
         } finally {
           loading.value = false;

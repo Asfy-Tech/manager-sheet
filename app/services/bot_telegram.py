@@ -203,9 +203,9 @@ class BotFather:
                     )
                     continue
     
-                late = row.get('late', [])
-                today = row.get('today', [])
-                future = row.get('future', [])
+                late = self.corverData(row.get('late', []))
+                today = self.corverData(row.get('today', []))
+                future = self.corverData(row.get('future', []))
 
                 if not late and not today and not future:
                     continue
@@ -233,21 +233,30 @@ class BotFather:
                         template_content = f.read()
                     exec(template_content, context)
                     message = context.get("message", "Không có tin nhắn nào!") 
+                
                 chat_id = user.chat_id
                 res = self.send_message(chat_id, message)
                 # resT = self.send_message('5670894265', message)
                 if 'ok' in res:
-                    print(f"Gửi tin nhắn thành công: message_id {res['result']['message_id']}")
+                    print(f"Send message success: message_id {res['result']['message_id']}")
                 else:
                     Notification.create(
                         title=user_name,
                         content="Không gửi được tin nhắn!"
                     )
             except Exception as e:
-                print(f'Lỗi khi gửi tin nhắn: {e}')
+                print(f'Error when send message: {e}')
              
-    def show_message(self):
-        pass
+    def corverData(self, data):
+        res = {}
+        for row in data:
+            sheet = row.get('sheet')
+            name = sheet.get('PHỤ TRÁCH').strip()
+            if name in res:
+                res[name].append(row)
+            else:
+                res[name] = [row]
+        return res
     
     def dd(self, data):
         """In ra dữ liệu dưới dạng JSON đẹp"""
@@ -256,8 +265,12 @@ class BotFather:
     # Hàm để xử lý lệnh /my_id
     async def my_id(self, update: Update, context: CallbackContext) -> None:
         """Trả về chat_id của người dùng"""
-        chat_id = update.message.chat_id
-        await update.message.reply_text(f"Your chat ID is: {chat_id}")
+        if update.message:
+            chat_id = update.message.chat_id
+            await context.bot.send_message(chat_id, f"Your chat ID is: {chat_id}")
+        else:
+            print(update.to_dict())
+            print("Received update without message field:", update)
 
     def start_bot(self):
         try:
@@ -275,7 +288,7 @@ class BotFather:
             # Bắt đầu bot
             application.run_polling(drop_pending_updates=True)
         except Exception as e:
-            print(f'Lỗi chạy bot: {e}')
+            print(f'Error when run bot: {e}')
 
 def run_bot_in_thread():
     bot_instance = BotFather()

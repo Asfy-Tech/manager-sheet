@@ -41,20 +41,20 @@ class GoogleSheets:
 
         sheet_ed = sheet_ids.get(sheet_name)
         if sheet_ed is None:
-            print(f"❌ Không tìm thấy sheet: {sheet_name}")
+            print(f"No search file sheet: {sheet_name}")
             return False
 
         # Lấy dữ liệu hiện có trong Google Sheets
         result = self.sheet.values().get(spreadsheetId=main_sheet_id, range=sheet_name).execute()
         values = result.get('values', [])
         if not values:
-            print("❌ Không tìm thấy dữ liệu trong sheet")
+            print("No find data to sheet")
             return False
 
         headers = values[0] if values else []
         task_id_col = self.getIndexCol(headers, settings.TASK_ID)
         if task_id_col is None:
-            print(f"❌ Không tìm thấy cột {settings.TASK_ID}")
+            print(f"No find col {settings.TASK_ID}")
             return False
 
         existing_task_ids = set()
@@ -73,7 +73,7 @@ class GoogleSheets:
                         break
 
                 if row_idx is None:
-                    print(f"➡ Task ID {sheet_id} chưa có, cần tạo mới")
+                    print(f"➡ Task ID {sheet_id} not found, create new")
                     row_idx = len(values)
                     new_row = [''] * len(headers)
                     new_row[task_id_col] = sheet_id
@@ -98,7 +98,7 @@ class GoogleSheets:
                         else:
                             updates.append({'range': f"{sheet_name}!{chr(65 + col_idx)}{row_idx + 1}", 'values': [[value]]})
             except Exception as e:
-                print(f"❌ Lỗi khi cập nhật task {sheet_id}: {e}")
+                print(f"Error when update task {sheet_id}: {e}")
                 continue
 
         # Gửi batch update
@@ -117,7 +117,7 @@ class GoogleSheets:
         headers = values[0] if values else []
         task_id_col = self.getIndexCol(headers, settings.TASK_ID)
         if task_id_col is None:
-            print(f"❌ Không tìm thấy cột {settings.TASK_ID}")
+            print(f"No find column {settings.TASK_ID}")
             return False
 
         # Danh sách task ID hiện tại
@@ -127,10 +127,10 @@ class GoogleSheets:
         tasks_to_delete = current_existing_task_ids - set(existing_task_ids)
 
         if not tasks_to_delete:
-            print("✅ Không có task nào cần xóa")
+            print("No task need delete")
             return True
 
-        print(f"🔴 Xóa các task: {tasks_to_delete}")
+        print(f"Remove Task: {tasks_to_delete}")
 
         rows_to_delete = [
             idx for idx, row in enumerate(values[1:], start=2)
@@ -138,7 +138,7 @@ class GoogleSheets:
         ]
 
         if not rows_to_delete:
-            print("✅ Không có hàng nào cần xóa")
+            print("No delete")
             return True
 
         # Xóa từ hàng cuối để tránh lệch index
@@ -158,11 +158,18 @@ class GoogleSheets:
 
         self.service.spreadsheets().batchUpdate(spreadsheetId=main_sheet_id, body={"requests": requests}).execute()
 
-        print("✅ Đã xóa các task không còn tồn tại")
+        print("Deleted success")
         return True
 
     def set_id_from_path_sheet(self, url):
-        pass
+        pattern = r'/d/([a-zA-Z0-9-_]+)'
+        match = re.search(pattern, url)
+        
+        if not match:
+            return False, None
+        
+        sheet_id = match.group(1)
+        return True, sheet_id
 
 
     def validate_sheet_url(self, url: str) -> tuple:
@@ -233,10 +240,9 @@ class GoogleSheets:
         Lấy dữ liệu từ Google Sheet thông qua URL
         Returns: DataFrame hoặc None nếu có lỗi
         """
-        is_valid, sheet_id, message, sheet_ids = self.validate_sheet_url(url)
+        is_valid, sheet_id = self.set_id_from_path_sheet(url)
         
         if not is_valid:
-            print(f"❌ {message}")
             return None
 
         try:
@@ -267,7 +273,7 @@ class GoogleSheets:
             values = [row for row in values if any(cell.strip() for cell in row)]
 
             if not values:
-                print("⚠️ Google Sheet trống!")
+                print("Google Sheet is empty!")
                 return {"headers": [], "data": []}
 
             # Chuyển dữ liệu thành dictionary
@@ -276,10 +282,10 @@ class GoogleSheets:
 
             return {"headers": headers, "data": data}
         except HttpError as e:
-            print(f"❌ Lỗi khi truy cập Google Sheet: {e}")
+            print(f"Error when truy cap Google Sheet: {e}")
             return None
         except Exception as e:
-            print(f"❌ Lỗi không xác định: {e}")
+            print(f"Error not found: {e}")
             return None
 
     def get_service_account_email(self):

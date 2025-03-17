@@ -8,7 +8,6 @@ import os
 import json
 from app.services.bot_telegram import BotFather
 from app.models.companies import Companies
-from app.models.tasks import Task
 from app.models.notifications import Notification
 import pytz
 from app.models.telegram_message import TelegramMessage
@@ -41,13 +40,13 @@ class FileWatcher:
                     try:
                         self._cache = json.load(f)
                     except json.JSONDecodeError:
-                        print("Lỗi định dạng JSON trong file, tạo file mới...")
+                        print("Error format json file, create new file...")
                         self.create_default_cache(file_path)
             else:
-                print("File không tồn tại, tạo file mới...")
+                print("File not exit, create new file...")
                 self.create_default_cache(file_path)
         except Exception as e:
-            print(f"Đã xảy ra lỗi khi đọc file: {e}")
+            print(f"Error when read file: {e}")
             self.create_default_cache(file_path)
 
     def create_default_cache(self, file_path):
@@ -55,10 +54,9 @@ class FileWatcher:
         try:
             with open(file_path, 'w', encoding='utf-8') as f:
                 json.dump({}, f, indent=4, ensure_ascii=False)
-            print("Tạo file 'cache/tasks.json' thành công!")
+            print("Create file 'cache/tasks.json' success!")
         except Exception as e:
-            print(f"Lỗi khi tạo file: {e}")
-
+            print(f"Error when create file: {e}")
 
     def _get_file_info(self, path: Path) -> dict:
         stats = path.stat()
@@ -121,7 +119,6 @@ class FileWatcher:
         bot = BotFather()
         bot.send_multiple_tasks(self._messages)
 
-
     def _check_and_send_message(self, sheet_id, sheet):
         deadline_str = sheet.get(settings.TASK_DEADLINE)
         status_str = sheet.get(settings.TASK_STATUS)
@@ -134,7 +131,7 @@ class FileWatcher:
         try:
             deadline = datetime.strptime(deadline_str, "%d/%m/%Y").date()
         except ValueError:
-            print(f"❌ Lỗi: Định dạng ngày không hợp lệ - {deadline_str}")
+            print(f"Error date format - {deadline_str}")
             return
 
         current_time = datetime.now(vn_timezone)
@@ -166,8 +163,9 @@ class FileWatcher:
 
         task = TelegramMessage.find_by_task_and_date(sheet_id, current_date_vn)
         if task:
-            if current_time.hour < 8:
-                task.update(**data)
+            pass
+            # if current_time.hour < 8:
+            #     task.update(**data)
         else:
             task = TelegramMessage.create(task_id=sheet_id, **data)
 
@@ -183,10 +181,9 @@ class FileWatcher:
             else:
                 self._messages['late'].append(row)
 
-
-    def _check_files(self):
+    def _check_files(self, gg_sheets):
         """Giả lập kiểm tra file"""
-        gg_sheets = GoogleSheets()
+        print('Open google sheets')
         companies = Companies.get_sorted_by_last_active()
         data_sheets = {}
         self._messages = {'late': [], 'today': [], 'future': []}
@@ -224,16 +221,22 @@ class FileWatcher:
                         title=f"Công ty: {company.name}",
                         content=e
                     )
+        print('Read full file success')
         self._process_sheet_tasks(data_sheets)
         data_sheets.clear()
         del data_sheets
         gc.collect()
 
     def start(self):
+        print('Start google sheet')
+        gg_sheets = GoogleSheets()
+        print('Done')
         while True:
-            self._check_files()
+            try:
+                self._check_files(gg_sheets)
+            except Exception as e:
+                print(f'Error read file: {e}')
             for i in range(300, 0, -1):
-                print(f'Còn: {i}s')
                 time.sleep(1)
 
     def stop(self):
@@ -241,4 +244,4 @@ class FileWatcher:
         self._running = False
         if self._thread and self._thread.is_alive():
             self._thread.join()
-            print("FileWatcher đã dừng.")
+            print("FileWatcher stoped.")

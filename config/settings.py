@@ -57,8 +57,8 @@ class Settings:
     UPLOAD_FOLDER = "uploads"
 
     # Template messate telegram
-    TEMPLATE_FILE = "message_template.txt"
-    TEMPLATE_DEFAULT_FILE = "config/default_template.txt"
+    TEMPLATE_FILE = os.path.abspath("message_template.txt")
+    TEMPLATE_DEFAULT_FILE = os.path.abspath("config/default_template.txt")
     
 
 settings = Settings()
