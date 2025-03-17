@@ -189,7 +189,7 @@ class FileWatcher:
         self._messages = {'late': [], 'today': [], 'future': []}
         for company in companies:
             try:
-                print(f'Start company: {company.id}')
+                print(f'Start company: {company.name}')
                 link = company.sheet_link
                 res = gg_sheets.get_data_from_link(link, 'Tasks', formatJson=True)
                 print(f'Read success company: {company.id}')
@@ -236,7 +236,7 @@ class FileWatcher:
                 self._check_files(gg_sheets)
             except Exception as e:
                 print(f'Error read file: {e}')
-            for i in range(300, 0, -1):
+            for i in range(180, 0, -1):
                 time.sleep(1)
 
     def stop(self):
