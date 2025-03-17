@@ -13,4 +13,4 @@ bcrypt
 pytz
 python-telegram-bot
 gunicorn
-bcryptjs
+jinja2

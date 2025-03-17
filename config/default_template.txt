@@ -1,0 +1,63 @@
+message = f"⏳ `Anh {user.name} ơi: `\n\n"
+
+if today:
+    message += "🔴 *CÔNG VIỆC ĐẾN HẠN HÔM NAY* 🔴\n"
+    message += "💡 _Anh có những công việc sau cần hoàn thành, chú ý nhé!_\n\n"
+
+    for i, mess in enumerate(today, 1):
+        task = mess.get("task")
+        if task and task.id not in mess_ids:
+            mess_ids.add(task.id)
+            task.update(is_seen=True)
+
+        message += f"📌 *Công việc {i}:*\n"
+        if is_admin:
+            message += f"    *Người phụ trách:* `{task.representative}`\n"
+        message += f"    *Công ty:* {task.company}\n"
+        message += f"    *Việc cần làm:* {task.todo}\n"
+        message += f"    *Hạng mục:* {task.category}\n"
+        if task.support:
+            message += f"    *Hỗ trợ:* {task.support}\n"
+        message += f"    *Deadline:* {task.deadline.strftime('%d-%m-%Y')}\n\n"
+
+if late:
+    message += "⚠️ *CÔNG VIỆC QUÁ HẠN* ⚠️\n"
+    message += "🚨 _Một số công việc đã trễ Deadline, cần xử lý gấp!_\n\n"
+
+    for i, mess in enumerate(late, 1):
+        task = mess.get("task")
+        if task and task.id not in mess_ids:
+            mess_ids.add(task.id)
+            task.update(is_seen=True)
+
+        message += f"❌ *Công việc trễ {i}:*\n"
+        if is_admin:
+            message += f"    *Người phụ trách:* `{task.representative}`\n"
+        message += f"    *Công ty:* {task.company}\n"
+        message += f"    *Việc cần làm:* {task.todo}\n"
+        message += f"    *Hạng mục:* {task.category}\n"
+        if task.support:
+            message += f"    *Hỗ trợ:* {task.support}\n"
+        message += f"    *Deadline:* {task.deadline.strftime('%d-%m-%Y')}\n"
+        message += f"    *Trễ:* {task.delay} ngày\n\n"
+
+if future:
+    message += "🟢 *CÔNG VIỆC SẮP TỚI DEADLINE* 🟢\n"
+    message += "📆 _Những công việc dưới đây sắp đến hạn, anh chuẩn bị trước nhé!_\n\n"
+
+    for i, mess in enumerate(future, 1):
+        task = mess.get("task")
+        if task and task.id not in mess_ids:
+            mess_ids.add(task.id)
+            task.update(is_seen=True)
+
+        message += f"🔜 *Công việc {i}:*\n"
+        if is_admin:
+            message += f"    *Người phụ trách:* `{task.representative}`\n"
+        message += f"    *Công ty:* {task.company}\n"
+        message += f"    *Việc cần làm:* {task.todo}\n"
+        message += f"    *Hạng mục:* {task.category}\n"
+        if task.support:
+            message += f"    *Hỗ trợ:* {task.support}\n"
+        message += f"    *Deadline:* {task.deadline.strftime('%d-%m-%Y')}\n\n"
+
