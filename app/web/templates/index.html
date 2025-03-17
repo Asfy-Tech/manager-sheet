@@ -115,9 +115,7 @@ block style %}
   <div class="container-fluid">
     <div class="row">
       <div class="col-12">
-        <div
-          class="page-title-box d-sm-flex align-items-center justify-content-between"
-        >
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between" >
           <h4 class="mb-sm-0">Trang chủ</h4>
         </div>
       </div>
@@ -126,40 +124,68 @@ block style %}
     <div class="row">
       <div class="col-lg-12">
         <div class="card">
-          <div
-            class="card-header d-flex justify-content-between align-items-center"
-          >
+          <div class="card-header d-flex flex-wrap gap-2 justify-content-between align-items-center" >
             <div class="d-flex align-items-center">
               <h5 class="card-title mb-0 me-2">Danh sách công việc hôm nay</h5>
-              <div
-                class="badge bg-soft-info text-info fs-12 d-flex align-items-center"
-              ></div>
             </div>
-
-            <div class="col-lg-2 col-md-6" style="margin-left: 380px">
-              <select
-                class="form-control"
-                id="choiceTaskName"
-                @change="handleSelectTask"
-              >
-                <option value="">Tất cả</option>
-                <option value="1">Trễ hẹn</option>
-                <option value="2">Tới hạn hôm nay</option>
-                <option value="3">Sắp tới deadline</option>
-              </select>
-            </div>
-            <div class="col-lg-3 col-md-2">
-              <div class="row">
-                <div class="col-lg-6">
-                  <button class="btn btn-success w-100" @click="exportExcel">
-                    Xuất Excel
-                  </button>
-                </div>
-                <div class="col-lg-6">
-                  <button class="btn btn-danger w-100" @click="exportPDF">
-                    Xuất PDF
-                  </button>
-                </div>
+            <div class="d-flex gap-2 align-items-center">
+             <div>
+                <select class="form-control" id="choiceTaskName" @change="handleSelectTask">
+                  <option value="">Tất cả</option>
+                  <option value="1">Trễ hẹn</option>
+                  <option value="2">Tới hạn hôm nay</option>
+                  <option value="3">Sắp tới deadline</option>
+                </select>
+             </div>
+              <div>
+                <select id="choiceCompany" class="form-control" @change="filterData">
+                  <option value="">Tất cả công ty</option>
+                </select>
+              </div>
+              <div>
+                <select id="choiceUser" class="form-control" @change="filterData">
+                  <option value="">Tất cả người phụ trách</option>
+                </select>
+              </div>
+              <div class="btn-group">
+                <button id="dropdownMenuClickableInside" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" class="btn btn-sm btn-primary position-relative dropdown-toggle" style="height: 38px; width: 60px; transition: all linear 0.2s" type="button" title="Lọc headers">
+                  <i class="ri-edit-line"></i>
+                  <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success">{{ countSelectHeader }}</span>
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenuClickableInside" id="ul-show-headers-selected"
+                >
+                  <li v-for="(name, idx) in headers">
+                    <label :for="idx" class="dropdown-item cursor-pointer d-flex align-items-center gap-3" href="javascript:void(0);"
+                    >
+                      <input v-model="modelSelectedHeader" :value="name" :id="idx" type="checkbox"
+                      />
+                      {{ name }}
+                    </label>
+                  </li>
+                </ul>
+              </div>
+              <div class="btn-group">
+                <button
+                  class="btn btn-sm btn-success"
+                  type="button"
+                  data-bs-toggle="modal"
+                  data-bs-target="#sendTelegramModal"
+                  title="Gửi tin nhắn"
+                  @click="prepareSendTelegram"
+                  style="height: 38px; width: 60px; transition: all linear 0.2s"
+                >
+                  <i class="ri-send-plane-fill"></i>
+                </button>
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-success" @click="exportExcel" style="height: 38px; width: 110px;">
+                  Xuất Excel
+                </button>
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-danger" @click="exportPDF" style="height: 38px; width: 110px;">
+                  Xuất PDF
+                </button>
               </div>
             </div>
           </div>
@@ -168,50 +194,19 @@ block style %}
               <div class="spinner-border text-primary spin" role="status"></div>
             </div>
             <div v-else class="table-wrapper">
-              <table class="table custom-table">
+              <table id="table-data-sheets" class="table custom-table">
                 <thead>
                   <tr>
-                    <th>Task Id</th>
-                    <th>Người phụ trách</th>
-                    <th>Tên công ty</th>
-                    <th>Việc cần làm</th>
-                    <th>Hạng mục</th>
-                    <th>Hỗ trợ</th>
-                    <th>Deadline</th>
+                    <th v-for="(item, index) in headerSelected" :key="index">
+                      {{ item }}
+                    </th>
                   </tr>
                 </thead>
+                
                 <tbody>
-                  <tr v-for="(item, index) in tasks" :key="item.id">
-                    <td>{{ item.task_id }}</td>
-                    <td>{{ item.representative }}</td>
-                    <td>{{ item.company }}</td>
-                    <td>{{ item.todo }}</td>
-                    <td>{{ item.category }}</td>
-                    <td>{{ item.support }}</td>
-                    <td>
-                      <span class="fw-bold">{{ item.deadline }}</span>
-                      <br />
-                      <span
-                        v-if="item.type == 1"
-                        class="text-danger d-inline-flex align-items-center"
-                      >
-                        <i class="ri-error-warning-line fs-13 me-1"></i>
-                        Trễ {{ item.delay }} ngày
-                      </span>
-                      <span
-                        v-else-if="item.type == 2"
-                        class="text-info d-inline-flex align-items-center"
-                      >
-                        <i class="ri-time-line fs-13 me-1"></i>
-                        Đến hạn hôm nay
-                      </span>
-                      <span
-                        v-else-if="item.type == 3"
-                        class="text-primary d-inline-flex align-items-center"
-                      >
-                        <i class="ri-calendar-event-line fs-13 me-1"></i>
-                        Sắp tới deadline
-                      </span>
+                  <tr v-for="(item, index) in tasksFiltered" :key="index">
+                    <td v-for="(header, index) in headerSelected" :key="index">
+                      {{ item[headerKeyMap[header]] }}
                     </td>
                   </tr>
                 </tbody>
@@ -221,14 +216,152 @@ block style %}
         </div>
       </div>
     </div>
+    <div class="modal fade" id="sendTelegramModal" tabindex="-1" aria-labelledby="sendTelegramModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="sendTelegramModalLabel">
+            Gửi tin nhắn Telegram
+          </h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <div v-if="loadingTelegram.load" class="text-center py-1">
+            <div class="loading-spinner">
+              <div
+                class="spinner-border spinner-border-sm text-primary spin"
+                role="status"
+              ></div>
+            </div>
+          </div>
+          <div>
+            <div>
+              <select
+                v-model="modelSelectedUserTelegram"
+                id="userTelegrams"
+                multiple
+                class="form-select"
+              >
+                <option value="">Chọn người nhận...</option>
+              </select>
+            </div>
+            <div>
+              <textarea
+                v-model="messageContent"
+                class="form-control mt-2"
+                rows="3"
+                placeholder="Nhập nội dung tin nhắn..."
+              ></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Đóng
+          </button>
+          <button
+            v-if="loadingTelegram.submit"
+            class="btn btn-primary"
+            type="button"
+            title="Gửi tin nhắn"
+          >
+            <div class="loading-spinner">
+              <div
+                class="spinner-border spinner-border-sm text-white spin"
+                role="status"
+              ></div>
+            </div>
+          </button>
+          <button
+            v-else
+            class="btn btn-primary"
+            type="button"
+            title="Gửi tin nhắn"
+            @click="sendMessage"
+          >
+            <i class="ri-send-plane-2-fill"></i> Gửi
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
   </div>
 </div>
 {% endblock %} {% block script %}
+<script src="[[ url_for('static',filename='js/html2canvas.min.js') ]]"></script>
 <script>
   const app = Vue.createApp({
     setup() {
       const tasks = Vue.ref([]);
       const loading = Vue.ref(false);
+      const choices = Vue.reactive({
+        sheet: null,
+        company: null,
+        user: null,
+        status: null,
+      });
+      const data = Vue.ref([]);
+      const headerSelected = Vue.ref([]);
+      const headers = Vue.ref([]);
+      const modelSelectedHeader = Vue.ref([]);
+      const countSelectHeader = Vue.ref(0);
+      const filteredData = Vue.ref([]);
+      const notSheets = [
+        "TK đăng nhập",
+        "UserChatIds",
+        "EmailMapping",
+        "Timeline",
+      ];
+      const defaultStatus = [
+        "Ðã hoàn thành",
+        "Chưa bắt đầu",
+        "Đang thực hiện",
+        "Tạm hoãn",
+      ];
+      let listHeaderCheck = [
+        "TASK ID",
+        "NGƯỜI PHỤ TRÁCH",
+        "TÊN CÔNG TY",
+        "VIỆC CẦN LÀM",
+        "HẠNG MỤC",
+        "HỖ TRỢ",
+        "DEADLINE",
+      ];
+      const loadingTelegram = Vue.reactive({
+        load: false,
+        show: false,
+        submit: false,
+      });
+      const usersTelegram = Vue.ref([]);
+      const modelSelectedUserTelegram = Vue.ref([]);
+      const messageContent = Vue.ref("");
+      // Tạo ánh xạ giữa tiêu đề & dữ liệu
+      const headerKeyMap = {
+        "TASK ID": "task_id",
+        "NGƯỜI PHỤ TRÁCH": "representative",
+        "TÊN CÔNG TY": "company",
+        "VIỆC CẦN LÀM": "todo",
+        "HẠNG MỤC": "category",
+        "HỖ TRỢ": "support",
+        "DEADLINE": "deadline",
+      };
+      const tasksFiltered = Vue.ref([]); // Mảng chứa dữ liệu đã lọc theo TD
+
+      function filterData() {
+        let user = choices.user.getValue().value;
+        let company = choices.company.getValue().value;
+        let taskName = choices.taskName.getValue().value;
+        console.log(choices);
+      }
 
       const loadTasks = async (params = {}) => {
         try {
@@ -450,24 +583,211 @@ block style %}
         doc.save("Danh_Sach_Cong_Viec.pdf");
       };
 
-      Vue.onMounted(() => {
-        loadTasks();
-        new Choices(document.getElementById("choiceTaskName"), {
-          shouldSort: false,
-        });
-      });
+      const selectSheet = async (sheetName) => {
+        const storedHeaders = localStorage.getItem("headers");
+        try {
+          loading.value = true;
+          const res = await axios.get(`/api/sheets/${sheetName}`);
+          headers.value = res.data?.headers;
+          if (storedHeaders && storedHeaders != "[]") {
+            let newHeaders = JSON.parse(storedHeaders);
+            headerSelected.value = Array.from(headers.value).filter((item) => {
+              return newHeaders.includes(item.trim());
+            });
+          } else {
+            let newHeaders = Array.from(headers.value).filter((item) => {
+              return listHeaderCheck.includes(item.trim());
+            });
+            headerSelected.value = newHeaders;
+          }
+          modelSelectedHeader.value = headerSelected.value
+          countSelectHeader.value = headerSelected.value.length;
+          data.value = res.data?.data;
+          filteredData.value = res.data?.data;
+          let listStatus = res.data?.data.map((item) => {
+            return item["TRẠNG THÁI"].trim();
+          });
+          let listCompanies = res.data?.data.map((item) => {
+            return item["CÔNG TY"].trim();
+          });
+          let listUsers = res.data?.data.map((item) => {
+            return item["PHỤ TRÁCH"].trim();
+          });
+          defaultStatus.forEach((item) => {
+            if (!listStatus.includes(item)) {
+              listStatus.push(item);
+            }
+          });
+          listCompanies = Array.from(new Set(listCompanies));
+          listStatus = Array.from(new Set(listStatus));
+          listUsers = Array.from(new Set(listUsers));
+          dt = listStatus.map((status) => ({ value: status, label: status }));
+          dt.unshift({
+            value: "",
+            label: "Tất cả trạng thái",
+          });
+          choices.company.setChoices(dt, "value", "label", true);
+          dt = listUsers.map((user) => ({ value: user, label: user }));
+          dt.unshift({
+            value: "",
+            label: "Tất cả nhân sự",
+          });
+          choices.user.setChoices(dt, "value", "label", true);
+
+          // initEventSource(sheetName);
+        } catch (e) {
+          console.error("Error fetching sheet data:", e);
+        } finally {
+          loading.value = false;
+        }
+      };
+
+      const handleSelectSheet = (event) => {
+        const sheetName = event.target.value;
+        selectSheet(sheetName);
+      };
 
       const handleSelectTask = async (event) => {
         const type = event.target.value;
         await loadTasks({ type });
       };
+      const prepareSendTelegram = async () => {
+        await loadListUsersTelegram();
+        messageContent.value = "";
+        modelSelectedUserTelegram.value = [];
+      };
+      async function loadListUsersTelegram() {
+        loadingTelegram.load = true;
+        try {
+          let res = await axios.get("/api/telegrams/users");
+          if (res.status == 200) {
+            dt = res.data?.data.map((user) => ({
+              value: user.chat_id,
+              label: user.name,
+            }));
+            choices.userTelegram.setChoices(dt, "value", "label", true);
+          }
+        } catch (e) {
+          console.log(`Lỗi khi get user: ${e}`);
+        }
+        loadingTelegram.load = false;
+      }
+      const showToast = (message, type = "success") => {
+        Toastify({
+          text: message,
+          duration: 3000,
+          gravity: "top",
+          position: "right",
+          backgroundColor: type === "success" ? "#4caf50" : "#f44336",
+          close: true,
+          stopOnFocus: true,
+        }).showToast();
+      };
+      function fixOklchColors() {
+        document.querySelectorAll("*").forEach((el) => {
+          const computedStyle = window.getComputedStyle(el);
+          ["color", "backgroundColor", "borderColor"].forEach((prop) => {
+            if (computedStyle[prop] && computedStyle[prop].includes("oklch")) {
+              el.style[prop] = "#000000"; // Hoặc bất kỳ màu hợp lệ nào bạn muốn
+            }
+          });
+        });
+      }
+      async function sendMessage() {
+        loadingTelegram.submit = true;
+        try {
+          fixOklchColors();
+          const table = document.getElementById("table-data-sheets");
+          const canvas = await html2canvas(table, {
+            scale: 3,
+            useCORS: true,
+            backgroundColor: "#FFFFFF",
+            fontColor: "#000000", // Chặn các màu oklch()
+          });
+          const imageData = canvas.toDataURL("image/png");
+          // Gửi ảnh lên backend
+          const res = await axios.post("/api/telegrams/send-table", {
+            image: imageData,
+            users: modelSelectedUserTelegram.value,
+            content: messageContent.value,
+          });
 
+          if (res.status === 200 && res.data.success) {
+            showToast(res.data.message || "Ảnh đã gửi thành công!", "success");
+            modelSelectedUserTelegram.value = [];
+          } else {
+            showToast(res.data.error || "Có lỗi xảy ra khi gửi ảnh!", "error");
+          }
+          const modalElement = document.getElementById("sendTelegramModal");
+          const modalInstance = bootstrap.Modal.getInstance(modalElement);
+          modalInstance.hide();
+        } catch (e) {
+          showToast(`Lỗi khi gửi ảnh: ${e.message || e}`, "error");
+        }
+        loadingTelegram.submit = false;
+      }
+      Vue.watch(modelSelectedHeader, (newValue) => {
+        console.log(newValue);
+        let newHeaderSelected = Array.from(newValue);
+
+        // Cập nhật danh sách headerSelected (TH)
+        headerSelected.value = headers.value.filter((item) =>
+          newHeaderSelected.includes(item.trim())
+        );
+
+        // Cập nhật danh sách TD (lọc dữ liệu trong tasks)
+        tasksFiltered.value = tasks.value.map((task) => {
+          let filteredTask = {};
+          headerSelected.value.forEach((header) => {
+            let key = headerKeyMap[header]; // Lấy key tương ứng từ headerKeyMap
+            if (key in task) {
+              filteredTask[key] = task[key]; // Chỉ giữ lại các cột đã chọn
+            }
+          });
+          return filteredTask;
+        });
+
+        countSelectHeader.value = newHeaderSelected.length;
+      });
+      Vue.onMounted(async () => {
+        loadTasks();
+        choices.taskName = new Choices(document.getElementById("choiceTaskName"), {
+          shouldSort: false,
+        });
+        choices.company = new Choices(
+          document.getElementById("choiceCompany"),
+          { shouldSort: false }
+        );
+        choices.user = new Choices(document.getElementById("choiceUser"), {
+          shouldSort: false,
+        });
+        choices.userTelegram = new Choices(document.getElementById("userTelegrams"), {
+          shouldSort: false,
+        });
+        await selectSheet("Tasks");
+      });
       return {
         tasks,
+        sendMessage,
         loading,
+        headers,
         handleSelectTask,
         exportExcel,
         exportPDF,
+        filterData,
+        countSelectHeader,
+        data,
+        modelSelectedHeader,
+        filteredData,
+        listHeaderCheck,
+        prepareSendTelegram,
+        usersTelegram,
+        modelSelectedUserTelegram,
+        loadingTelegram,
+        headerSelected,
+        messageContent,
+        headerKeyMap,
+        tasksFiltered
       };
     },
   });
