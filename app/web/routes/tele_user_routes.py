@@ -14,11 +14,6 @@ from sqlalchemy.orm import sessionmaker
 from app.models.base import engine
 from datetime import datetime
 
-@routes.route("/api/telegrams/users/remote") 
-def get_user_remote_tele_message():
-    users = BotFather().get_all_users()
-    return jsonify(users)
-
 @routes.route("/api/telegrams/messages") 
 def get_tele_message():
     Session = sessionmaker(bind=engine)
@@ -33,6 +28,13 @@ def get_tele_message():
         if 'type' in params:
             if params.get('type'):
                 query = query.filter(TelegramMessage.type == params["type"])
+        if 'company' in params:
+            if params.get('company'):
+                query = query.filter(TelegramMessage.company.like(f"%{params['company']}%"))
+
+        if 'representative' in params:
+            if params.get('representative'):
+                query = query.filter(TelegramMessage.representative.like(f"%{params['representative']}%"))
 
         tasks = query.all()
 
@@ -54,6 +56,10 @@ def get_tele_message():
             "error": "Internal server error"
         }), 500
 
+@routes.route("/api/telegrams/users/remote") 
+def get_user_remote_tele_message():
+    users = BotFather().get_all_users()
+    return jsonify(users)
 
 @routes.route("/api/telegrams/users", methods=["GET", "POST"]) 
 def get_tele_users():

@@ -164,7 +164,7 @@ block style %}
                   </li>
                 </ul>
               </div>
-              <div class="btn-group">
+              <!-- <div class="btn-group">
                 <button
                   class="btn btn-sm btn-success"
                   type="button"
@@ -176,7 +176,7 @@ block style %}
                 >
                   <i class="ri-send-plane-fill"></i>
                 </button>
-              </div>
+              </div> -->
               <div class="btn-group">
                 <button class="btn btn-success" @click="exportExcel" style="height: 38px; width: 110px;">
                   Xuất Excel
@@ -204,7 +204,7 @@ block style %}
                 </thead>
                 
                 <tbody>
-                  <tr v-for="(item, index) in tasksFiltered" :key="index">
+                  <tr v-for="(item, index) in tasks" :key="index">
                     <td v-for="(header, index) in headerSelected" :key="index">
                       {{ item[headerKeyMap[header]] }}
                     </td>
@@ -321,18 +321,12 @@ block style %}
         "EmailMapping",
         "Timeline",
       ];
-      const defaultStatus = [
-        "Ðã hoàn thành",
-        "Chưa bắt đầu",
-        "Đang thực hiện",
-        "Tạm hoãn",
-      ];
       let listHeaderCheck = [
         "TASK ID",
-        "NGƯỜI PHỤ TRÁCH",
-        "TÊN CÔNG TY",
-        "VIỆC CẦN LÀM",
+        "CÔNG TY",
         "HẠNG MỤC",
+        "VIỆC CẦN LÀM",
+        "NGƯỜI PHỤ TRÁCH",
         "HỖ TRỢ",
         "DEADLINE",
       ];
@@ -347,21 +341,29 @@ block style %}
       // Tạo ánh xạ giữa tiêu đề & dữ liệu
       const headerKeyMap = {
         "TASK ID": "task_id",
-        "NGƯỜI PHỤ TRÁCH": "representative",
-        "TÊN CÔNG TY": "company",
-        "VIỆC CẦN LÀM": "todo",
+        "CÔNG TY": "company",
         "HẠNG MỤC": "category",
-        "HỖ TRỢ": "support",
+        "NGƯỜI PHỤ TRÁCH": "representative",
         "DEADLINE": "deadline",
+        "HỖ TRỢ": "support",
+        "VIỆC CẦN LÀM": "todo"
       };
       const tasksFiltered = Vue.ref([]); // Mảng chứa dữ liệu đã lọc theo TD
-
+      
       function filterData() {
-        let user = choices.user.getValue().value;
-        let company = choices.company.getValue().value;
-        let taskName = choices.taskName.getValue().value;
-        console.log(choices);
+          let representative = choices.user.getValue().value;
+          let company = choices.company.getValue().value;
+          let type = choices.taskName.getValue().value;
+
+          let params = Object.entries({ representative, company, type })
+              .reduce((acc, [key, value]) => {
+                  if (value) acc[key] = value; // Chỉ thêm nếu giá trị không rỗng
+                  return acc;
+              }, {});
+
+          loadTasks(params);
       }
+
 
       const loadTasks = async (params = {}) => {
         try {
@@ -583,68 +585,48 @@ block style %}
         doc.save("Danh_Sach_Cong_Viec.pdf");
       };
 
-      const selectSheet = async (sheetName) => {
+      const selectSheet = async () => {
         const storedHeaders = localStorage.getItem("headers");
         try {
           loading.value = true;
-          const res = await axios.get(`/api/sheets/${sheetName}`);
-          headers.value = res.data?.headers;
+          const res = await axios.get(`/api/telegrams/messages`);
+          headers.value = listHeaderCheck;
           if (storedHeaders && storedHeaders != "[]") {
             let newHeaders = JSON.parse(storedHeaders);
-            headerSelected.value = Array.from(headers.value).filter((item) => {
-              return newHeaders.includes(item.trim());
-            });
-          } else {
-            let newHeaders = Array.from(headers.value).filter((item) => {
-              return listHeaderCheck.includes(item.trim());
-            });
             headerSelected.value = newHeaders;
+          } else {
+            headerSelected.value = listHeaderCheck;
           }
           modelSelectedHeader.value = headerSelected.value
           countSelectHeader.value = headerSelected.value.length;
           data.value = res.data?.data;
           filteredData.value = res.data?.data;
-          let listStatus = res.data?.data.map((item) => {
-            return item["TRẠNG THÁI"].trim();
-          });
           let listCompanies = res.data?.data.map((item) => {
-            return item["CÔNG TY"].trim();
-          });
-          let listUsers = res.data?.data.map((item) => {
-            return item["PHỤ TRÁCH"].trim();
-          });
-          defaultStatus.forEach((item) => {
-            if (!listStatus.includes(item)) {
-              listStatus.push(item);
-            }
+            return item["company"].trim();
           });
           listCompanies = Array.from(new Set(listCompanies));
-          listStatus = Array.from(new Set(listStatus));
-          listUsers = Array.from(new Set(listUsers));
-          dt = listStatus.map((status) => ({ value: status, label: status }));
+          dt = listCompanies.map((item) => ({ value: item, label: item }));
           dt.unshift({
             value: "",
-            label: "Tất cả trạng thái",
+            label: "Tất cả công ty",
           });
           choices.company.setChoices(dt, "value", "label", true);
-          dt = listUsers.map((user) => ({ value: user, label: user }));
+
+          let listUsers = res.data?.data.map((item) => {
+            return item["representative"].trim();
+          });
+          listUsers = Array.from(new Set(listUsers));
+          dt = listUsers.map((item) => ({ value: item, label: item }));
           dt.unshift({
             value: "",
             label: "Tất cả nhân sự",
           });
           choices.user.setChoices(dt, "value", "label", true);
-
-          // initEventSource(sheetName);
         } catch (e) {
           console.error("Error fetching sheet data:", e);
         } finally {
           loading.value = false;
         }
-      };
-
-      const handleSelectSheet = (event) => {
-        const sheetName = event.target.value;
-        selectSheet(sheetName);
       };
 
       const handleSelectTask = async (event) => {
@@ -726,29 +708,33 @@ block style %}
         }
         loadingTelegram.submit = false;
       }
-      Vue.watch(modelSelectedHeader, (newValue) => {
-        console.log(newValue);
-        let newHeaderSelected = Array.from(newValue);
-
-        // Cập nhật danh sách headerSelected (TH)
-        headerSelected.value = headers.value.filter((item) =>
-          newHeaderSelected.includes(item.trim())
-        );
-
-        // Cập nhật danh sách TD (lọc dữ liệu trong tasks)
-        tasksFiltered.value = tasks.value.map((task) => {
-          let filteredTask = {};
-          headerSelected.value.forEach((header) => {
-            let key = headerKeyMap[header]; // Lấy key tương ứng từ headerKeyMap
+      
+      const filterDataAfterReturn = (data, header) => {
+        return data.value.map((task) => {
+          return header.reduce((filteredTask, header) => {
+            const key = headerKeyMap[header]; // Lấy key tương ứng từ headerKeyMap
             if (key in task) {
               filteredTask[key] = task[key]; // Chỉ giữ lại các cột đã chọn
             }
-          });
-          return filteredTask;
+            return filteredTask;
+          }, {});
         });
-
+      }
+      Vue.watch(modelSelectedHeader, (newValue) => {
+        // lưu lọc vào localstorage
+        localStorage.setItem("headers", JSON.stringify(newValue));
+        // Chuyển đổi newValue thành mảng (nếu cần)
+        const newHeaderSelected = [...newValue];
+        // Lọc headers.value để loại bỏ các key không cần thiết
+        headerSelected.value = headers.value.filter((item, index) => 
+          newHeaderSelected.includes(item.trim())
+        );
+        // Cập nhật danh sách TD (lọc dữ liệu trong tasks)
+        tasksFiltered.value = filterDataAfterReturn(tasks, headerSelected.value);
+        // Cập nhật số lượng header đã chọn
         countSelectHeader.value = newHeaderSelected.length;
       });
+
       Vue.onMounted(async () => {
         loadTasks();
         choices.taskName = new Choices(document.getElementById("choiceTaskName"), {
@@ -764,7 +750,7 @@ block style %}
         choices.userTelegram = new Choices(document.getElementById("userTelegrams"), {
           shouldSort: false,
         });
-        await selectSheet("Tasks");
+        await selectSheet();
       });
       return {
         tasks,
