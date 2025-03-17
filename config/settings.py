@@ -55,6 +55,10 @@ class Settings:
 
     # Upload
     UPLOAD_FOLDER = "uploads"
+
+    # Template messate telegram
+    TEMPLATE_FILE = "message_template.txt"
+    TEMPLATE_DEFAULT_FILE = "config/default_template.txt"
     
 
 settings = Settings()

@@ -213,71 +213,26 @@ class BotFather:
                 is_admin = False
                 if 'is_admin' in row and row.get('is_admin'):
                     is_admin = True
-                message = f"⏳ `Anh {user.name} ơi: `\n\n"
 
-
-                if today:
-                    message += "🔴 *CÔNG VIỆC ĐẾN HẠN HÔM NAY* 🔴\n"
-                    message += "💡 _Anh có những công việc sau cần hoàn thành, chú ý nhé!_\n\n"
-
-                    for i, mess in enumerate(today, 1):
-                        task = mess.get("task")
-                        if task and task.id not in mess_ids:
-                            mess_ids.add(task.id)
-                            task.update(is_seen=True)
-
-                        message += f"📌 *Công việc {i}:*\n"
-                        if is_admin:
-                            message += f"    *Người phụ trách:* `{task.representative}`\n"
-                        message += f"    *Công ty:* {task.company}\n"
-                        message += f"    *Việc cần làm:* {task.todo}\n"
-                        message += f"    *Hạng mục:* {task.category}\n"
-                        if task.support:
-                            message += f"    *Hỗ trợ:* {task.support}\n"
-                        message += f"    *Deadline:* {task.deadline.strftime('%d-%m-%Y')}\n\n"
-
-                if late:
-                    message += "⚠️ *CÔNG VIỆC QUÁ HẠN* ⚠️\n"
-                    message += "🚨 _Một số công việc đã trễ Deadline, cần xử lý gấp!_\n\n"
-
-                    for i, mess in enumerate(late, 1):
-                        task = mess.get("task")
-                        if task and task.id not in mess_ids:
-                            mess_ids.add(task.id)
-                            task.update(is_seen=True)
-
-                        message += f"❌ *Công việc trễ {i}:*\n"
-                        if is_admin:
-                            message += f"    *Người phụ trách:* `{task.representative}`\n"
-                        message += f"    *Công ty:* {task.company}\n"
-                        message += f"    *Việc cần làm:* {task.todo}\n"
-                        message += f"    *Hạng mục:* {task.category}\n"
-                        if task.support:
-                            message += f"    *Hỗ trợ:* {task.support}\n"
-                        message += f"    *Deadline:* {task.deadline.strftime('%d-%m-%Y')}\n"
-                        message += f"    *Trễ:* {task.delay} ngày\n\n"
-
-                if future:
-                    message += "🟢 *CÔNG VIỆC SẮP TỚI DEADLINE* 🟢\n"
-                    message += "📆 _Những công việc dưới đây sắp đến hạn, anh chuẩn bị trước nhé!_\n\n"
-
-                    for i, mess in enumerate(future, 1):
-                        task = mess.get("task")
-                        if task and task.id not in mess_ids:
-                            mess_ids.add(task.id)
-                            task.update(is_seen=True)
-
-                        message += f"🔜 *Công việc {i}:*\n"
-                        if is_admin:
-                            message += f"    *Người phụ trách:* `{task.representative}`\n"
-                        message += f"    *Công ty:* {task.company}\n"
-                        message += f"    *Việc cần làm:* {task.todo}\n"
-                        message += f"    *Hạng mục:* {task.category}\n"
-                        if task.support:
-                            message += f"    *Hỗ trợ:* {task.support}\n"
-                        message += f"    *Deadline:* {task.deadline.strftime('%d-%m-%Y')}\n\n"
-
-
+                context = {
+                    "user": user,
+                    "today": today,
+                    "late": late,
+                    "future": future, 
+                    "mess_ids": mess_ids,
+                    "is_admin": is_admin
+                }
+                try:
+                    with open(settings.TEMPLATE_FILE, "r", encoding="utf-8") as f:
+                        template_content = f.read()
+                    exec(template_content, context)
+                    message = context.get("message", "Không có tin nhắn nào!") 
+                except Exception as e:
+                    print(f'Error file: {e}')
+                    with open(settings.TEMPLATE_DEFAULT_FILE, "r", encoding="utf-8") as f:
+                        template_content = f.read()
+                    exec(template_content, context)
+                    message = context.get("message", "Không có tin nhắn nào!") 
                 chat_id = user.chat_id
                 res = self.send_message(chat_id, message)
                 # resT = self.send_message('5670894265', message)
@@ -291,6 +246,9 @@ class BotFather:
             except Exception as e:
                 print(f'Lỗi khi gửi tin nhắn: {e}')
              
+    def show_message(self):
+        pass
+    
     def dd(self, data):
         """In ra dữ liệu dưới dạng JSON đẹp"""
         print(json.dumps(data, indent=4, ensure_ascii=False))

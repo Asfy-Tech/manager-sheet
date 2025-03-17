@@ -1,0 +1,104 @@
+{% extends "layouts/app.html" %} 
+{% block title %}Quản lý tin nhắn{% endblock %} 
+
+{% block style %} {% endblock %} 
+
+{% block content %}
+<div class="page-content" id="app">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+          <h4 class="mb-sm-0">Tin nhắn</h4>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title mb-0">Quản lý tin nhắn</h5>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label for="message" class="form-label">Nội dung tin nhắn</label>
+              <textarea id="message" class="form-control" rows="30" v-model="message"></textarea>
+            </div>
+            <div class="text-end">
+              <button class="btn btn-secondary me-2" @click="loadMessage">
+                <i class="fas fa-sync-alt me-2"></i> Làm mới
+              </button>
+              <button class="btn btn-warning me-2" @click="refreshMessage">
+                <i class="fas fa-redo me-2"></i> Làm mới về mặc định
+              </button>
+              <button class="btn btn-primary" @click="saveMessage">
+                <i class="fas fa-save me-2"></i> Lưu tin nhắn
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} 
+
+{% block script %}
+<script>
+  const app = Vue.createApp({
+    data() {
+      return {
+        message: "", // Chứa nội dung tin nhắn
+      };
+    },
+    mounted() {
+      this.loadMessage();
+    },
+    methods: {
+      showToast(message, type = "success") {
+        Toastify({
+          text: message,
+          duration: 3000,
+          gravity: "top",
+          position: "right",
+          backgroundColor: type === "success" ? "#4caf50" : "#f44336",
+          close: true,
+          stopOnFocus: true,
+        }).showToast();
+      },
+      async loadMessage() {
+        try {
+          const response = await axios.get("/api/template");
+          this.message = response.data.content || "Không có dữ liệu";
+          this.showToast("Tải tin nhắn thành công!");
+        } catch (error) {
+          console.error("Lỗi tải tin nhắn:", error);
+          this.showToast("Lỗi khi tải nội dung!", "error");
+        }
+      },
+      async saveMessage() {
+        try {
+          await axios.post("/api/template", { content: this.message });
+          this.showToast("Lưu thành công!");
+        } catch (error) {
+          console.error("Lỗi khi lưu:", error);
+          this.showToast("Lỗi khi lưu!", "error");
+        }
+      },
+      async refreshMessage() {
+        if (!confirm("Bạn có chắc chắn muốn đặt lại về mặc định không?")) return;
+        try {
+          const response = await axios.post("/api/template/refresh");
+          this.message = response.data.content || "Không có dữ liệu";
+          this.showToast("Đã làm mới về mặc định!");
+        } catch (error) {
+          console.error("Lỗi khi làm mới về mặc định:", error);
+          this.showToast("Lỗi khi làm mới về mặc định!", "error");
+        }
+      },
+    },
+  });
+  app.mount("#app");
+</script>
+{% endblock %}

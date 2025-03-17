@@ -15,6 +15,10 @@ def list_tasks():
 def watch_sheets():
     return render_template('sheets/watch.html')
 
+@routes.route("/telegrams/template", methods=["GET"]) 
+def telegram_template():
+    return render_template('telegrams/template.html')
+
 @routes.route("/settings", methods=["GET"]) 
 def settings():
     return render_template('settings.html')

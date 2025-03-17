@@ -3,12 +3,12 @@
 # watcher = FileWatcher(interval=30)
 # watcher._check_files()
 
-# from app.models.base import Base, engine
+# # from app.models.base import Base, engine
 from app.models.telegram_message import TelegramMessage
-# # # from app.models.telegram_users import TelegramUser
-# # # from app.models.users import User
-# # # from app.models.companies import Companies
-# # # from app.models.notifications import Notification
+# # # # from app.models.telegram_users import TelegramUser
+# # # # from app.models.users import User
+# # # # from app.models.companies import Companies
+# from app.models.notifications import Notification
 from app.models.notificationw import Notifications
 # Base.metadata.create_all(engine)
 # from config import hash_password, check_password
@@ -65,10 +65,4 @@ send = {
 }
 from app.services.bot_telegram import BotFather
 bot = BotFather()
-bot.send_message(5882159790, '<b>Bold</b>', parse_mode="HTML")
-bot.send_message(5882159790, '<i>Italic</i>', parse_mode="HTML")
-bot.send_message(5882159790, '<u>Underline</u>', parse_mode="HTML")
-bot.send_message(5882159790, '<a href="https://example.com">Link</a>', parse_mode="HTML")
-bot.send_message(5882159790, '<code>Code</code>', parse_mode="HTML")
-bot.send_message(5882159790, '<pre>Preformatted</pre', parse_mode="HTML")
-# bot._send_message_for_user(send)
+bot._send_message_for_user(send)

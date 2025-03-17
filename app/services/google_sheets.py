@@ -282,8 +282,6 @@ class GoogleSheets:
             print(f"❌ Lỗi không xác định: {e}")
             return None
 
-
-    
     def get_service_account_email(self):
         return self.credentials.service_account_email
     
