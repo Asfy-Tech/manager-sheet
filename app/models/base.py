@@ -26,92 +26,84 @@ class BaseModel(Base):
 
     @classmethod
     def find(cls: Type[T], id: int) -> Optional[T]:
-        """Tìm một bản ghi theo ID giống Laravel."""
         return db_session.query(cls).filter_by(id=id).first()
 
     @classmethod
     def get(cls: Type[T], **kwargs) -> List[T]:
-        """Lấy tất cả hoặc truyền điều kiện `where` giống Laravel."""
-        query = db_session.query(cls).filter_by(**kwargs) if kwargs else db_session.query(cls)
-        return query.all()  # Trả về danh sách object thay vì dict
+        return db_session.query(cls).filter_by(**kwargs).all()
 
     @classmethod
     def where(cls: Type[T], **kwargs) -> List[T]:
-        """Lọc bản ghi theo điều kiện."""
         return db_session.query(cls).filter_by(**kwargs).all()
 
     @classmethod
     def first(cls: Type[T], **kwargs) -> Optional[T]:
-        """Lấy bản ghi đầu tiên theo điều kiện."""
         return db_session.query(cls).filter_by(**kwargs).first()
 
     @classmethod
-    def create(cls: Type[T], **kwargs) -> T:
-        """Tạo bản ghi mới."""
-        filtered_data = {k: v for k, v in kwargs.items() if k in getattr(cls, '__fillable__', [])}
-        instance = cls(**filtered_data)
-        db_session.add(instance)
+    def create(cls: Type[T], **kwargs) -> Optional[T]:
+        """Tạo bản ghi mới và commit vào DB"""
         try:
+            instance = cls(**kwargs)
+            db_session.add(instance)
             db_session.commit()
             return instance
-        except:
+        except Exception as e:
             db_session.rollback()
-            raise
+            print(f"Error creating {cls.__name__}: {e}")
+            return None
 
     def update(self, **kwargs) -> bool:
-        """Cập nhật bản ghi."""
-        for key, value in kwargs.items():
-            if key in getattr(self, '__fillable__', []):
-                setattr(self, key, value)
+        """Cập nhật bản ghi và commit"""
         try:
+            for key, value in kwargs.items():
+                if hasattr(self, key):
+                    setattr(self, key, value)
             db_session.commit()
             return True
-        except:
+        except Exception as e:
             db_session.rollback()
+            print(f"Error updating {self.__class__.__name__}: {e}")
             return False
 
     def delete(self) -> bool:
-        """Xóa bản ghi."""
+        """Xóa bản ghi khỏi database"""
         try:
             db_session.delete(self)
             db_session.commit()
             return True
-        except:
+        except Exception as e:
             db_session.rollback()
+            print(f"Error deleting {self.__class__.__name__}: {e}")
             return False
-    
+
     @classmethod
     def delete_all(cls) -> bool:
-        """Xóa toàn bộ dữ liệu trong bảng."""
+        """Xóa toàn bộ dữ liệu trong bảng"""
         try:
             db_session.query(cls).delete()
             db_session.commit()
             return True
-        except:
+        except Exception as e:
             db_session.rollback()
-            return False
-        
-    def save(self):
-        """Lưu thay đổi vào database."""
-        try:
-            db_session.commit()
-        except:
-            db_session.rollback()
-            raise
-        
-    @classmethod
-    def delete_by_id(cls, id: int) -> bool:
-        instance = db_session.query(cls).filter_by(id=id).first()
-        if not instance:
-            return False
-        db_session.delete(instance)
-        try:
-            db_session.commit()
-            return True
-        except:
-            db_session.rollback()
+            print(f"Error deleting all {cls.__name__} records: {e}")
             return False
 
+    def save(self):
+        """Lưu thay đổi vào database"""
+        try:
+            db_session.commit()
+        except Exception as e:
+            db_session.rollback()
+            print(f"Error saving {self.__class__.__name__}: {e}")
+
+    @classmethod
+    def delete_by_id(cls, id: int) -> bool:
+        instance = cls.find(id)
+        if not instance:
+            return False
+        return instance.delete()
+
     def to_dict(self) -> Dict[str, Any]:
-        """Chuyển model thành dictionary."""
+        """Chuyển model thành dictionary"""
         return {c.name: getattr(self, c.name) for c in self.__table__.columns if c.name not in getattr(self, 'hidden', [])}
