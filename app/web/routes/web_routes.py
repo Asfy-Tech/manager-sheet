@@ -26,6 +26,11 @@ def settings():
 @routes.route("/telegrams/users", methods=["GET"]) 
 def telegrams_users():
     return render_template('telegrams/users.html')
+
+@routes.route("/users", methods=["GET"]) 
+def users():
+    return render_template('users.html')
+
 @routes.route("/telegrams/notification", methods=["GET"]) 
 def telegrams_notification():
     return render_template('telegrams/notification.html')

@@ -1,4 +1,4 @@
-{% extends "layouts/app.html" %} {% block title %}Danh sách phòng chat{% endblock
+{% extends "layouts/app.html" %} {% block title %}Danh sách nhân sự{% endblock
 %} {% block style %}
 {% endblock %} {% block content %}
 <div class="page-content" id="app">
@@ -8,13 +8,13 @@
         <div
           class="page-title-box d-sm-flex align-items-center justify-content-between"
         >
-          <h4 class="mb-sm-0">Phòng chat</h4>
+          <h4 class="mb-sm-0">Nhân sự</h4>
           <button
             class="btn btn-primary"
             data-bs-toggle="modal"
             data-bs-target="#createSheetModal"
           >
-            Thêm phòng chat
+            Thêm nhân sự
           </button>
         </div>
       </div>
@@ -24,7 +24,7 @@
       <div class="col-lg-12">
         <div class="card">
           <div class="card-header">
-            <h5 class="card-title mb-0">Danh sách phòng chat</h5>
+            <h5 class="card-title mb-0">Danh sách nhân sự</h5>
           </div>
           <div class="card-body">
             <div
@@ -43,9 +43,9 @@
                 <thead>
                   <tr>
                     <th>STT</th>
-                    <th>Tên phòng chat</th>
-                    <th>Chat Telegram Id</th>
-                    <th>Quyền</th>
+                    <th>Tên</th>
+                    <th>Tài khoản</th>
+                    <th>Trạng thái</th>
                     <th>Hành động</th>
                   </tr>
                 </thead>
@@ -53,11 +53,7 @@
                   <tr v-for="(item, index) in users" :key="index">
                     <td>{{ ++index }}</td>
                     <td>{{ item.name }}</td>
-                    <td>
-                      <a href="#" class="btn btn-sm btn-soft-primary">
-                        {{ item.chat_id }}
-                      </a>
-                    </td>
+                    <td>{{ item.email }}</td>
                     <td>
                       <span
                         :class="[
@@ -67,7 +63,7 @@
                               : 'bg-primary-subtle text-primary'
                           ]"
                       >
-                        {{ item.role == 1 ? 'Quản trị viên' : 'Nhân sự' }}
+                        {{ item.status == 1 ? 'Hoạt động' : 'Bị khoá' }}
                       </span>
                     </td>
                     <td class="d-flex gap-2">
@@ -106,7 +102,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="editSheetModalLabel">
-            Chỉnh sửa phòng chat
+            Chỉnh sửa nhân sự
           </h5>
           <button
             type="button"
@@ -119,30 +115,28 @@
           <form @submit.prevent="submitEdit">
             <div class="row g-3">
               <div class="col-xxl-12">
-                <label for="editName" class="form-label">Tên phòng chat</label>
+                <label for="editName" class="form-label">Tên nhân sự</label>
                 <input
                   type="text"
                   class="form-control"
                   v-model="edit.name"
-                  placeholder="Tên phòng chat"
+                  placeholder="Tên nhân sự"
                 />
               </div>
               <div class="col-sm-6">
-                <label for="editChatId" class="form-label"
-                  >Chat Telegram Id</label
-                >
+                <label for="editName" class="form-label">Tên nhân sự</label>
                 <input
                   type="text"
                   class="form-control"
-                  v-model="edit.chat_id"
-                  placeholder="Chat Telegram Id"
+                  v-model="edit.email"
+                  placeholder="Tài khoản"
                 />
               </div>
               <div class="col-sm-6">
                 <label for="editRole" class="form-label">Chọn vai trò</label>
-                <select class="form-control" v-model="edit.role" id="editRole">
-                  <option value="2">Người dùng</option>
-                  <option value="1">Quản trị viên</option>
+                <select class="form-control" v-model="edit.status" id="editRole">
+                  <option value="true">Hoạt động</option>
+                  <option value="false">Khoá</option>
                 </select>
               </div>
               <div class="col-lg-12">
@@ -221,7 +215,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="exampleModalgridLabel">
-            Thêm mới phòng chat
+            Thêm mới nhân sự
           </h5>
           <button
             type="button"
@@ -235,12 +229,12 @@
             <div class="row g-3">
               <div class="col-xxl-12">
                 <div>
-                  <label for="firstName" class="form-label">Tên phòng chat</label>
+                  <label for="firstName" class="form-label">Tên nhân sự</label>
                   <input
                     type="text"
                     class="form-control"
                     v-model="create.name"
-                    placeholder="Tên phòng chat"
+                    placeholder="Tên nhân sự"
                   />
                 </div>
               </div>
@@ -248,25 +242,30 @@
               <div class="col-sm-6">
                 <div>
                   <label for="lastName" class="form-label"
-                    >Chat Telegram Id</label
+                    >Tài khoản</label
                   >
                   <input
                     type="text"
                     class="form-control"
-                    v-model="create.chat_id"
-                    placeholder="Đường dẫn link sheet"
+                    v-model="create.email"
+                    placeholder="Tài khoản"
                   />
                 </div>
               </div>
               <div class="col-sm-6">
                 <div>
-                  <label for="role" class="form-label">Chọn vai trò</label>
-                  <select class="form-control" v-model="create.role" id="role">
-                    <option value="2" selected>Người dùng</option>
-                    <option value="1">Quản trị viên</option>
-                  </select>
+                  <label for="lastName" class="form-label"
+                    >Mật khẩu</label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    v-model="create.password"
+                    placeholder="Mật khẩu"
+                  />
                 </div>
               </div>
+              
               <div class="col-lg-12">
                 <div class="hstack gap-2 justify-content-end">
                   <button
@@ -309,14 +308,15 @@
       const edit = Vue.ref({
         id: "",
         name: "",
-        chat_id: "",
-        role: "2",
+        email: "",
+        status: "",
       });
 
       const create = Vue.ref({
         name: "",
-        chat_id: "",
-        role: "2",
+        email: "",
+        password: "",
+        role: "user",
       });
       const loading = Vue.ref(false);
       const isLoading = Vue.ref(false);
@@ -333,14 +333,17 @@
       }
 
       async function submitEdit() {
-      if (!edit.value.name || !edit.value.chat_id) {
-        showToast("Vui lòng nhập đầy đủ thông tin!", "error");
-        return;
-      }
+        edit.value.name = edit.value.name.trim();
+        edit.value.email = edit.value.email.trim();
+
+        if (!edit.value.name || !edit.value.email || !edit.value.status) {
+          showToast("Vui lòng nhập đủ thông tin!", "error");
+          return;
+        }
 
       try {
         isLoading.value = true;
-        const response = await axios.put(`/api/telegrams/users/${edit.value.id}`, edit.value);
+        const response = await axios.put(`/api/users/${edit.value.id}`, edit.value);
 
         if (response.data.success) {
           showToast("Cập nhật thành công!");
@@ -374,7 +377,7 @@
         try {
           isLoading.value = true;
           const response = await axios.delete(
-            `/api/telegrams/users/${deleteId.value}`
+            `/api/users/${deleteId.value}`
           );
 
           if (response.data.success) {
@@ -410,7 +413,7 @@
       const loadUsers = async () => {
         try {
           loading.value = true;
-          const res = await axios.get("/api/telegrams/users");
+          const res = await axios.get("/api/users");
           if (res.data?.success) {
             users.value = res.data?.data;
           }
@@ -431,23 +434,24 @@
 
       async function submitCreate() {
         create.value.name = create.value.name.trim();
-        create.value.chat_id = create.value.chat_id.trim();
+        create.value.email = create.value.email.trim();
+        create.value.password = create.value.password.trim();
 
-        if (!create.value.name || !create.value.chat_id) {
+        if (!create.value.name || !create.value.email || !create.value.password) {
           showToast("Vui lòng nhập đủ thông tin!", "error");
           return;
         }
         try {
           isLoading.value = true;
           const response = await axios.post(
-            "/api/telegrams/users",
+            "/api/users",
             create.value
           );
 
           if (response.data.success) {
-            showToast("Thêm phòng chat thành công!");
+            showToast("Thêm nhân sự thành công!");
             loadUsers();
-            create.value = { name: "", chat_id: "", role: "2" };
+            create.value = { name: "", email: "", password: "", role: "user" };
             const modalElement = document.getElementById("createSheetModal");
             const modalInstance = bootstrap.Modal.getInstance(modalElement);
             modalInstance.hide();
@@ -455,9 +459,9 @@
             throw new Error(response.data.error || "Unknown error");
           }
         } catch (error) {
-          console.error("Lỗi khi thêm phòng chat:", error);
+          console.error("Lỗi khi thêm nhân sự:", error);
           showToast(
-            error.response?.data?.error || "Có lỗi xảy ra khi thêm phòng chat!",
+            error.response?.data?.error || "Có lỗi xảy ra khi thêm nhân sự!",
             "error"
           );
         } finally {
