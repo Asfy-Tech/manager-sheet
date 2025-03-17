@@ -462,35 +462,37 @@
                   <span data-key="t-authentication">Danh sách công ty</span>
                 </a>
               </li>
-              <li class="nav-item">
-                <a class="nav-link menu-link" href="/telegrams/users">
-                  <i class="ri-user-3-line"></i>
-                  <!-- Thay icon danh sách nhân sự -->
-                  <span data-key="t-authentication">Danh sách phòng chat</span>
-                </a>
-              </li>
+              {% if session.get('is_admin') %}
+                <li class="nav-item">
+                  <a class="nav-link menu-link" href="/telegrams/users">
+                    <i class="ri-user-3-line"></i>
+                    <!-- Thay icon danh sách nhân sự -->
+                    <span data-key="t-authentication">Danh sách phòng chat</span>
+                  </a>
+                </li>
 
-              <!-- <li class="nav-item">
-                <a class="nav-link menu-link" href="/telegrams/notification">
-                  <i class=" ri-notification-badge-line"></i>
-                  <span data-key="t-authentication">Quản lý thông báo</span>
-                </a>
-              </li> -->
+                <!-- <li class="nav-item">
+                  <a class="nav-link menu-link" href="/telegrams/notification">
+                    <i class=" ri-notification-badge-line"></i>
+                    <span data-key="t-authentication">Quản lý thông báo</span>
+                  </a>
+                </li> -->
 
-              <li class="nav-item">
-                <a class="nav-link menu-link" href="/telegrams/template">
-                  <i class=" ri-notification-badge-line"></i>
-                  <!-- Thay icon danh sách nhân sự -->
-                  <span data-key="t-authentication">Quản lý tin nhắn</span>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link menu-link" href="/users">
-                  <i class="ri-user-3-line"></i>
-                  <!-- Thay icon danh sách nhân sự -->
-                  <span data-key="t-authentication">Quản lý nhân sự</span>
-                </a>
-              </li>
+                <li class="nav-item">
+                  <a class="nav-link menu-link" href="/telegrams/template">
+                    <i class=" ri-notification-badge-line"></i>
+                    <!-- Thay icon danh sách nhân sự -->
+                    <span data-key="t-authentication">Quản lý tin nhắn</span>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link menu-link" href="/users">
+                    <i class="ri-user-3-line"></i>
+                    <!-- Thay icon danh sách nhân sự -->
+                    <span data-key="t-authentication">Quản lý nhân sự</span>
+                  </a>
+                </li>
+              {% endif %}
             </ul>
           </div>
           <!-- Sidebar -->

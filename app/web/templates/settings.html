@@ -14,20 +14,22 @@
           <div class="card-header">
             <ul class="nav nav-tabs-custom rounded card-header-tabs border-bottom-0" role="tablist">
               <li class="nav-item">
-                <a class="nav-link active" data-bs-toggle="tab" href="#configUpload" role="tab">
-                  <i class="fas fa-cog"></i> Cấu hình
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="tab" href="#configPassword" role="tab">
+                <a class="nav-link active" data-bs-toggle="tab" href="#configPassword" role="tab">
                   <i class="fas fa-key"></i> Đổi mật khẩu
                 </a>
               </li>
+              {% if session.get('is_admin') %}
+                <li class="nav-item">
+                  <a class="nav-link" data-bs-toggle="tab" href="#configUpload" role="tab">
+                    <i class="fas fa-cog"></i> Cấu hình
+                  </a>
+                </li>
+              {% endif %}
             </ul>
           </div>
           <div class="card-body p-4">
             <div class="tab-content">
-              <div class="tab-pane active" id="configUpload" role="tabpanel">
+              <div class="tab-pane" id="configUpload" role="tabpanel">
                 <!-- Upload Form -->
                 <form @submit.prevent="uploadConfig" class="mb-4">
                   <div class="row">
@@ -66,7 +68,7 @@
                 </div>
               </div>
 
-              <div class="tab-pane" id="configPassword" role="tabpanel">
+              <div class="tab-pane active" id="configPassword" role="tabpanel">
                 <h5 class="mb-4">Đổi mật khẩu</h5>
                 <form @submit.prevent="changePassword">
                   <div class="mb-3">

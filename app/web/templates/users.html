@@ -46,6 +46,7 @@
                     <th>Tên</th>
                     <th>Tài khoản</th>
                     <th>Trạng thái</th>
+                    <th>Lần hoạt động cuối</th>
                     <th>Hành động</th>
                   </tr>
                 </thead>
@@ -66,6 +67,7 @@
                         {{ item.status == 1 ? 'Hoạt động' : 'Bị khoá' }}
                       </span>
                     </td>
+                    <td>{{ formatDate(item.last_login) }}</td>
                     <td class="d-flex gap-2">
                       <button
                         @click="confirmEdit(item.id)"
@@ -133,7 +135,7 @@
                 />
               </div>
               <div class="col-sm-6">
-                <label for="editRole" class="form-label">Chọn vai trò</label>
+                <label for="editRole" class="form-label">Trạng thái</label>
                 <select class="form-control" v-model="edit.status" id="editRole">
                   <option value="true">Hoạt động</option>
                   <option value="false">Khoá</option>

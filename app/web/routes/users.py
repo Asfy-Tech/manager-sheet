@@ -15,7 +15,10 @@ def get_users():
         db = User()
         if request.method == 'GET':
             users = db.get()
-            users = [n.to_dict() for n in users]
+            users = [{
+                **n.to_dict(),
+                'last_login': n.last_login.strftime('%Y-%m-%d %H:%M:%S') if n.last_login else None
+            } for n in users]
             return jsonify({
                 "success": True,
                 "data": users

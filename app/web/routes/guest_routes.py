@@ -63,6 +63,9 @@ def login_api():
     if not check_password(pwd, user.password):
         return jsonify({"message": "Mật khẩu không chính xác"}), 401
     
+    if user.status == False:
+        return jsonify({"message": "Tài khoản đã bị khóa"}), 401
+
     import pytz
 
     vn_tz = pytz.timezone("Asia/Ho_Chi_Minh")

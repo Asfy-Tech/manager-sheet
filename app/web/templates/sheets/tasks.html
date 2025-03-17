@@ -98,7 +98,7 @@ style %}
                   {{ name }}
                 </option>
               </select> -->
-
+              {% if session.get('is_admin') %}
               <div class="btn-group">
                 <button
                   class="btn btn-sm btn-success"
@@ -112,6 +112,7 @@ style %}
                   <i class="ri-send-plane-fill"></i>
                 </button>
               </div>
+              {% endif %}
             </div>
           </div>
 

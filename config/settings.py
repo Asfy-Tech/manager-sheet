@@ -5,6 +5,9 @@ from dotenv import load_dotenv
 class Settings:
     # Load environment variables
     load_dotenv()
+
+    # Main ID Admin
+    ADMIN_ID = 1
     
     # Base paths
     BASE_DIR = Path(__file__).resolve().parent.parent
