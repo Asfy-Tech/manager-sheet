@@ -50,7 +50,7 @@ class BaseModel(Base):
             return instance
         except Exception as e:
             db_session.rollback()
-            print(f"Error creating {cls.__name__}: {e}")
+            # print(f"Error creating {cls.__name__}: {e}")
             return None
 
     def update(self, **kwargs) -> bool:
@@ -63,7 +63,7 @@ class BaseModel(Base):
             return True
         except Exception as e:
             db_session.rollback()
-            print(f"Error updating {self.__class__.__name__}: {e}")
+            # print(f"Error updating {self.__class__.__name__}: {e}")
             return False
 
     def delete(self) -> bool:
@@ -74,7 +74,7 @@ class BaseModel(Base):
             return True
         except Exception as e:
             db_session.rollback()
-            print(f"Error deleting {self.__class__.__name__}: {e}")
+            # print(f"Error deleting {self.__class__.__name__}: {e}")
             return False
 
     @classmethod
@@ -86,7 +86,7 @@ class BaseModel(Base):
             return True
         except Exception as e:
             db_session.rollback()
-            print(f"Error deleting all {cls.__name__} records: {e}")
+            # print(f"Error deleting all {cls.__name__} records: {e}")
             return False
 
     def save(self):
@@ -95,7 +95,7 @@ class BaseModel(Base):
             db_session.commit()
         except Exception as e:
             db_session.rollback()
-            print(f"Error saving {self.__class__.__name__}: {e}")
+            # print(f"Error saving {self.__class__.__name__}: {e}")
 
     @classmethod
     def delete_by_id(cls, id: int) -> bool:

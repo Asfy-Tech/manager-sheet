@@ -40,13 +40,13 @@ class FileWatcher:
                     try:
                         self._cache = json.load(f)
                     except json.JSONDecodeError:
-                        print("Error format json file, create new file...")
+                        # print("Error format json file, create new file...")
                         self.create_default_cache(file_path)
             else:
-                print("File not exit, create new file...")
+                # print("File not exit, create new file...")
                 self.create_default_cache(file_path)
         except Exception as e:
-            print(f"Error when read file: {e}")
+            # print(f"Error when read file: {e}")
             self.create_default_cache(file_path)
 
     def create_default_cache(self, file_path):
@@ -54,7 +54,7 @@ class FileWatcher:
         try:
             with open(file_path, 'w', encoding='utf-8') as f:
                 json.dump({}, f, indent=4, ensure_ascii=False)
-            print("Create file 'cache/tasks.json' success!")
+            # print("Create file 'cache/tasks.json' success!")
         except Exception as e:
             print(f"Error when create file: {e}")
 
@@ -114,10 +114,10 @@ class FileWatcher:
             if checkUpdate and time is not None:
                 sheet[settings.TASK_FINISH_DATE] = time
             sheet_updates_needed[sheet_id] = sheet
-        # success = gg_sheets.update_task(sheet_updates_needed)
-        # print(f'Status Import: {success}')
+        list_created = gg_sheets.update_task(sheet_updates_needed)
         bot = BotFather()
         bot.send_multiple_tasks(self._messages)
+        bot.send_multiple_task_created_at(list_created)
 
     def _check_and_send_message(self, sheet_id, sheet):
         deadline_str = sheet.get(settings.TASK_DEADLINE)
@@ -131,7 +131,7 @@ class FileWatcher:
         try:
             deadline = datetime.strptime(deadline_str, "%d/%m/%Y").date()
         except ValueError:
-            print(f"Error date format - {deadline_str}")
+            # print(f"Error date format - {deadline_str}")
             return
 
         current_time = datetime.now(vn_timezone)
@@ -183,22 +183,22 @@ class FileWatcher:
 
     def _check_files(self, gg_sheets):
         """Giả lập kiểm tra file"""
-        print('Open google sheets')
+        # print('Open google sheets')
         companies = Companies.get_sorted_by_last_active()
         data_sheets = {}
         self._messages = {'late': [], 'today': [], 'future': []}
         generate_task_id = {}
         for company in companies:
             try:
-                print(f'Start company: {company.id}')
+                # print(f'Start company: {company.id}')
                 link = company.sheet_link
                 res = gg_sheets.get_data_from_link(link, 'Tasks', formatJson=True)
-                print(f'Read success company: {company.id}')
+                # print(f'Read success company: {company.id}')
                 if res is None:
                     company.update(status='deactive')
                     raise Exception('Không thể đọc dữ liệu!')
                 company.update(status='active')
-                print(f'-> Get data success company: {company.id}')
+                # print(f'-> Get data success company: {company.id}')
                 headers = res.get('headers')
                 data = res.get('data')
                 lower_headers = [h.upper() for h in headers]
@@ -206,7 +206,7 @@ class FileWatcher:
                     company.update(status='deactive')
                     raise Exception(f'Cột: {settings.TASK_ID} hoặc {settings.TASK_STATUS} không tồn tại!')
                 
-                print(f'-><- Yes data success company: {company.id}')
+                # print(f'-><- Yes data success company: {company.id}')
                 for dt in data:
                     if not dt.get(settings.TASK_ID):
                         if any(value for key, value in dt.items() if key != "row_id"):
@@ -223,7 +223,7 @@ class FileWatcher:
                                 'row_id': dt.get('row_id'),
                                 'value': dt[settings.TASK_ID],
                             })
-                            print(f"Generated task_id: {dt[settings.TASK_ID]} for company: {company.name}")
+                            # print(f"Generated task_id: {dt[settings.TASK_ID]} for company: {company.name}")
 
                     if dt.get(settings.TASK_ID):
                         dt['CÔNG TY'] = company.name
@@ -233,14 +233,14 @@ class FileWatcher:
                 if company.id in self._cache_city:
                     self._cache_city.remove(company.id)
             except Exception as e:
-                print(f"Error read company: {company.name}: {e}")
+                # print(f"Error read company: {company.name}: {e}")
                 if company.id not in self._cache_city:
                     self._cache_city.append(company.id)
                     Notification.create(
                         title=f"Công ty: {company.name}",
                         content=e
                     )
-        print('Read full file success')
+        # print('Read full file success')
         if generate_task_id:
             gg_sheets.update_task_ids(generate_task_id)
         self._process_sheet_tasks(data_sheets)
@@ -250,9 +250,9 @@ class FileWatcher:
         gc.collect()
 
     def start(self):
-        print('Start google sheet')
+        # print('Start google sheet')
         gg_sheets = GoogleSheets()
-        print('Done')
+        # print('Done')
         while True:
             try:
                 self._check_files(gg_sheets)

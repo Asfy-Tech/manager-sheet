@@ -83,7 +83,7 @@ class BotFather:
             response.raise_for_status()
             return response.json()
         except Exception as e:
-            print(f"Error sending photo: {e}")
+            # print(f"Error sending photo: {e}")
             return {"error": str(e)}
 
     def send_audio(self, chat_id, audio_url, caption=None):
@@ -144,6 +144,7 @@ class BotFather:
             return response.json()
         except requests.exceptions.RequestException as e:
             return {"error": str(e)}
+        
     def send_multiple_tasks(self, tasks):
         admins = TelegramUser.get(role=1)
         late = tasks.get('late')
@@ -190,6 +191,53 @@ class BotFather:
             users[name_trip]['is_admin'] = True
             users[name_trip]['future'] = future
         self._send_message_for_user(users)
+
+    
+    def send_multiple_task_created_at(self, tasks):
+        users = {}
+        for sheet in tasks:
+            user_name = sheet.get(settings.TASK_USER)
+            if not user_name:
+                continue
+
+            users.setdefault(user_name.strip(), [])
+            users[user_name.strip()].append(sheet)
+        for user_name, taks in users.items():
+            user = TelegramUser.first(name=user_name)
+            if not user:
+                Notification.create(
+                    title=user_name,
+                    content="Tài khoản không tồn tại trên hệ thống!"
+                )
+                continue
+            taks = self.corverData(taks, True)
+            if taks:
+                message = f"⏳ `{user.full_name} ơi, bạn vừa được giao thêm việc mới: `\n\n"
+                for company, vl in taks.items():
+                    message += f"   _CÔNG TY:_ `{company}`\n"
+                    for i, mess in enumerate(vl, 1):
+                        deadline_value = mess.get('DEADLINE')
+                        if isinstance(deadline_value, str): 
+                            try:
+                                deadline_value = datetime.strptime(deadline_value, "%Y-%m-%d")
+                            except ValueError:
+                                deadline_value = None 
+
+                        message += f"  📌*Công việc {i}:*\n"
+                        message += f"   *Việc cần làm:* {mess.get('VIỆC CẦN LÀM')}\n"
+                        message += f"   *Hạng mục:* {mess.get('HẠNG MỤC')}\n"
+                        if mess.get('HỖ TRỢ'):
+                            message += f"   *Hỗ trợ:* {mess.get('HỖ TRỢ')}\n"
+                        if isinstance(deadline_value, datetime): 
+                            message += f"   *Deadline:* {deadline_value.strftime('%d-%m-%Y')}\n\n"
+
+                chat_id = user.chat_id
+                res = self.send_message(chat_id, message)
+                if 'ok' not in res:
+                    Notification.create(
+                        title=user_name,
+                        content="Không gửi được tin nhắn!"
+                    )
 
     def _send_message_for_user(self, users):
         mess_ids = set()
@@ -238,9 +286,7 @@ class BotFather:
                 chat_id = user.chat_id
                 res = self.send_message(chat_id, message)
                 # resT = self.send_message('5670894265', message)
-                if 'ok' in res:
-                    print(f"Send message success: message_id {res['result']['message_id']}")
-                else:
+                if 'ok' not in res:
                     Notification.create(
                         title=user_name,
                         content="Không gửi được tin nhắn!"
@@ -248,20 +294,28 @@ class BotFather:
             except Exception as e:
                 print(f'Error when send message: {e}')
              
-    def corverData(self, data):
+    def corverData(self, data, create = False):
         res = {}
         for row in data:
-            sheet = row.get('sheet')
+            if create:
+                sheet = row
+            else:
+                sheet = row.get('sheet')
             name = sheet.get('PHỤ TRÁCH').strip()
             company = sheet.get('CÔNG TY').strip()
-            if name in res:
-                if company not in res[name]:
-                    res[name][company] = []
-                res[name][company].append(row)
+            if create:
+                if company not in res:
+                    res[company] = []
+                res[company].append(row)
             else:
-                res[name] = {
-                    company: [row]
-                }
+                if name in res:
+                    if company not in res[name]:
+                        res[name][company] = []
+                    res[name][company].append(row)
+                else:
+                    res[name] = {
+                        company: [row]
+                    }
         return res
     
     def dd(self, data):
@@ -274,9 +328,9 @@ class BotFather:
         if update.message:
             chat_id = update.message.chat_id
             await context.bot.send_message(chat_id, f"Your chat ID is: {chat_id}")
-        else:
-            print(update.to_dict())
-            print("Received update without message field:", update)
+        # else:
+        #     print(update.to_dict())
+        #     print("Received update without message field:", update)
 
     def start_bot(self):
         try:

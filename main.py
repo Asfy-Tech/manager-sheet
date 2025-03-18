@@ -36,7 +36,7 @@ def configure_logging(app):
 
         return True
     except Exception as e:
-        print(f"Error configuring logging: {e}")
+        # print(f"Error configuring logging: {e}")
         return False
 
 

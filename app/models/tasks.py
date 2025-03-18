@@ -59,7 +59,7 @@ class Task(BaseModel):
             return True
         except Exception as e:
             db_session.rollback()
-            print(f"[ERROR] bulk_upsert failed: {e}")
+            # print(f"[ERROR] bulk_upsert failed: {e}")
             return False
 
     def get_status(self) -> str:

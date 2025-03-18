@@ -27,6 +27,7 @@ class GoogleSheets:
         return task_id_col
     
     def update_task(self, sheet_data, sheet_name='Tasks'):
+        list_created = []
         """
         Cập nhật trạng thái task trong Google Sheet.
         Args:
@@ -37,24 +38,31 @@ class GoogleSheets:
         """
         is_valid, main_sheet_id  = self.set_id_from_path_sheet(settings.GOOGLE_SHEET_MAIN_LINK)
         if not is_valid:
-            return False
+            return list_created
 
 
         # Lấy dữ liệu hiện có trong Google Sheets
         result = self.sheet.values().get(spreadsheetId=main_sheet_id, range=sheet_name).execute()
         values = result.get('values', [])
         if not values:
-            print("No find data to sheet")
-            return False
+            # print("No find data to sheet")
+            return list_created
 
         headers = values[0] if values else []
         task_id_col = self.getIndexCol(headers, settings.TASK_ID)
         if task_id_col is None:
-            print(f"No find col {settings.TASK_ID}")
-            return False
+            # print(f"No find col {settings.TASK_ID}")
+            return list_created
 
         existing_task_ids = set()
         updates = []
+
+        create_row = 1
+        rows_without_task_id = []
+        for idx, row in enumerate(values[1:], start=1):
+            if len(row) <= task_id_col or not row[task_id_col].strip():
+                rows_without_task_id.append(idx+1) 
+
 
         # Duyệt qua danh sách cần cập nhật
         for sheet_id, sheet in sheet_data.items():
@@ -68,8 +76,10 @@ class GoogleSheets:
                         row_idx = idx
                         break
 
+
                 if row_idx is None:
-                    print(f"➡ Task ID {sheet_id} not found, create new")
+                    # print(f"➡ Task ID {sheet_id} not found, create new")
+                    list_created.append(sheet)
                     row_idx = len(values)
                     new_row = [''] * len(headers)
                     new_row[task_id_col] = sheet_id
@@ -80,7 +90,8 @@ class GoogleSheets:
                                 new_row[col_idx] = f'=HYPERLINK("{value["link"]}", "{value["text"]}")'
                             else:
                                 new_row[col_idx] = value
-                    updates.append({'range': f"{sheet_name}!A{row_idx + 1}", 'values': [new_row]})
+                    updates.append({'range': f"{sheet_name}!A{row_idx + create_row}", 'values': [new_row]})
+                    create_row += 1
                     continue
 
                 # Cập nhật dữ liệu nếu task đã tồn tại
@@ -104,18 +115,20 @@ class GoogleSheets:
             # print('😒 Đã gặp lỗi:')
 
         # Xóa các task không còn tồn tại
-        if len(existing_task_ids) > 0:
-            self.delete_tasks(values, existing_task_ids, main_sheet_id)
+        # if len(existing_task_ids) > 0:
+        self.delete_tasks(values, existing_task_ids, main_sheet_id, rows_without_task_id)
+        return list_created
 
 
-    def delete_tasks(self, values, existing_task_ids,main_sheet_id):
+    def delete_tasks(self, values, existing_task_ids,main_sheet_id, rows_without_task_id):
+        # print(rows_without_task_id)
         """
         Xóa các task không còn tồn tại trong danh sách cập nhật.
         """
         headers = values[0] if values else []
         task_id_col = self.getIndexCol(headers, settings.TASK_ID)
         if task_id_col is None:
-            print(f"No find column {settings.TASK_ID}")
+            # print(f"No find column {settings.TASK_ID}")
             return False
 
         # Danh sách task ID hiện tại
@@ -124,23 +137,24 @@ class GoogleSheets:
         # Danh sách cần xóa
         tasks_to_delete = current_existing_task_ids - set(existing_task_ids)
 
-        if not tasks_to_delete:
-            print("No task need delete")
-            return True
+        # if not tasks_to_delete:
+        #     print("No task need delete")
+        #     return True
 
         rows_to_delete = [
             idx for idx, row in enumerate(values[1:], start=2)
             if len(row) > task_id_col and row[task_id_col] in tasks_to_delete
         ]
 
+        rows_to_delete.extend(rows_without_task_id)
+
         if not rows_to_delete:
-            print("No delete")
+            # print("No delete")
             return True
 
         # Xóa từ hàng cuối để tránh lệch index
         rows_to_delete.sort(reverse=True)
 
-        print(settings.MAIN_SHEET_ID, int(settings.MAIN_SHEET_ID))
         # Gửi batch request để xóa hàng
         requests = [{
             "deleteDimension": {
@@ -155,7 +169,7 @@ class GoogleSheets:
 
         self.service.spreadsheets().batchUpdate(spreadsheetId=main_sheet_id, body={"requests": requests}).execute()
 
-        print("Deleted success")
+        # print("Deleted success")
         return True
 
     def set_id_from_path_sheet(self, url):
@@ -279,7 +293,7 @@ class GoogleSheets:
                 if any(cell.strip() if isinstance(cell, str) else str(cell) for cell in row)
             ]
             if not values:
-                print("Google Sheet is empty!")
+                # print("Google Sheet is empty!")
                 return {"headers": [], "data": []}
 
             # Chuyển dữ liệu thành dictionary
@@ -289,10 +303,10 @@ class GoogleSheets:
 
             return {"headers": headers, "data": data}
         except HttpError as e:
-            print(f"Error when truy cap Google Sheet: {e}")
+            # print(f"Error when truy cap Google Sheet: {e}")
             return None
         except Exception as e:
-            print(f"Error not found: {e}")
+            # print(f"Error not found: {e}")
             return None
 
     def get_service_account_email(self):
@@ -335,13 +349,13 @@ class GoogleSheets:
 
                 try:
                     self.sheet.values().batchUpdate(spreadsheetId=main_sheet_id, body=body).execute()
-                    print(f"Update success {len(data_updates)} task_id(s) in Google Sheet {main_sheet_id}")
+                    # print(f"Update success {len(data_updates)} task_id(s) in Google Sheet {main_sheet_id}")
                 except Exception as e:
                     Notification.create(
                         title=f"Công ty: {row.get('name')}",
                         content="Không có quyền chỉnh sửa"
                     )
-                    print(f"Error when update Google Sheet {main_sheet_id}: {e}")
+                    # print(f"Error when update Google Sheet {main_sheet_id}: {e}")
             except Exception as e:
                 print(f'Error when update: {id}')
 
