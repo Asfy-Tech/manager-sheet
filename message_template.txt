@@ -6,20 +6,21 @@ if today:
 
     for user_name, row in today.items():
         if is_admin:
-            message += f"  *Nhân sự:* `{user_name}`\n\n"
-        for i, mess in enumerate(row, 1):
-            task = mess.get("task")
-            if task and task.id not in mess_ids:
-                mess_ids.add(task.id)
-                task.update(is_seen=True)
+            message += f"  👤*Nhân sự:* `{user_name}`\n\n"
+        for company, vl in row.items():
+            message += f"   _CÔNG TY:_ `{company}`\n"
+            for i, mess in enumerate(vl, 1):
+                task = mess.get("task")
+                if task and task.id not in mess_ids:
+                    mess_ids.add(task.id)
+                    task.update(is_seen=True)
 
-            message += f"  📌*Công việc {i}:*\n"
-            message += f"   *Công ty:* {task.company}\n"
-            message += f"   *Việc cần làm:* {task.todo}\n"
-            message += f"   *Hạng mục:* {task.category}\n"
-            if task.support:
-                message += f"   *Hỗ trợ:* {task.support}\n"
-            message += f"   *Deadline:* {task.deadline.strftime('%d-%m-%Y')}\n\n"
+                message += f"  📌*Công việc {i}:*\n"
+                message += f"   *Việc cần làm:* {task.todo}\n"
+                message += f"   *Hạng mục:* {task.category}\n"
+                if task.support:
+                    message += f"   *Hỗ trợ:* {task.support}\n"
+                message += f"   *Deadline:* {task.deadline.strftime('%d-%m-%Y')}\n\n"
 
 if late:
     message += "⚠️ *CÔNG VIỆC QUÁ HẠN* ⚠️\n"
@@ -27,21 +28,22 @@ if late:
 
     for user_name, row in late.items():
         if is_admin:
-            message += f"  *Nhân sự:* `{user_name}`\n\n"
-        for i, mess in enumerate(row, 1):
-            task = mess.get("task")
-            if task and task.id not in mess_ids:
-                mess_ids.add(task.id)
-                task.update(is_seen=True)
+            message += f"  👤*Nhân sự:* `{user_name}`\n\n"
+        for company, vl in row.items():
+            message += f"   _CÔNG TY:_ `{company}`\n"
+            for i, mess in enumerate(vl, 1):
+                task = mess.get("task")
+                if task and task.id not in mess_ids:
+                    mess_ids.add(task.id)
+                    task.update(is_seen=True)
 
-            message += f"  📌*Công việc trễ {i}:*\n"
-            message += f"   *Công ty:* {task.company}\n"
-            message += f"   *Việc cần làm:* {task.todo}\n"
-            message += f"   *Hạng mục:* {task.category}\n"
-            if task.support:
-                message += f"   *Hỗ trợ:* {task.support}\n"
-            message += f"   *Deadline:* {task.deadline.strftime('%d-%m-%Y')}\n"
-            message += f"   *Trễ:* {task.delay} ngày\n\n"
+                message += f"  📌*Công việc trễ {i}:*\n"
+                message += f"   *Việc cần làm:* {task.todo}\n"
+                message += f"   *Hạng mục:* {task.category}\n"
+                if task.support:
+                    message += f"   *Hỗ trợ:* {task.support}\n"
+                message += f"   *Deadline:* {task.deadline.strftime('%d-%m-%Y')}\n"
+                message += f"   *Trễ:* {task.delay} ngày\n\n"
 
 if future:
     message += "🟢 *CÔNG VIỆC SẮP TỚI DEADLINE* 🟢\n"
@@ -49,17 +51,18 @@ if future:
 
     for user_name, row in future.items():
         if is_admin:
-            message += f"  *Nhân sự:* `{user_name}`\n\n"
-        for i, mess in enumerate(row, 1):
-            task = mess.get("task")
-            if task and task.id not in mess_ids:
-                mess_ids.add(task.id)
-                task.update(is_seen=True)
+            message += f"  👤*Nhân sự:* `{user_name}`\n\n"
+        for company, vl in row.items():
+            message += f"   _CÔNG TY:_ `{company}`\n"
+            for i, mess in enumerate(vl, 1):
+                task = mess.get("task")
+                if task and task.id not in mess_ids:
+                    mess_ids.add(task.id)
+                    task.update(is_seen=True)
 
-            message += f"  📌*Công việc {i}:*\n"
-            message += f"   *Công ty:* {task.company}\n"
-            message += f"   *Việc cần làm:* {task.todo}\n"
-            message += f"   *Hạng mục:* {task.category}\n"
-            if task.support:
-                message += f"   *Hỗ trợ:* {task.support}\n"
-            message += f"   *Deadline:* {task.deadline.strftime('%d-%m-%Y')}\n\n"
+                message += f"  📌*Công việc {i}:*\n"
+                message += f"   *Việc cần làm:* {task.todo}\n"
+                message += f"   *Hạng mục:* {task.category}\n"
+                if task.support:
+                    message += f"   *Hỗ trợ:* {task.support}\n"
+                message += f"   *Deadline:* {task.deadline.strftime('%d-%m-%Y')}\n\n"

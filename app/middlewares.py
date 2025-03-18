@@ -3,6 +3,7 @@ from functools import wraps
 from app.models.users import User
 from datetime import datetime
 import pytz
+import json
 from config import settings
 vntz = pytz.timezone('Asia/Ho_Chi_Minh')
 
@@ -20,7 +21,12 @@ def login_required(f):
             else:
                 user.last_login = datetime.now(vntz)
                 user.save()
-            if user.id == settings.ADMIN_ID:
+            print(json.dumps({
+                'user_id': user.id ,
+                'admin_id': settings.ADMIN_ID,
+                'bool': user.id == int(settings.ADMIN_ID)
+            }))
+            if user.id == int(settings.ADMIN_ID):
                 is_admin = True
             session['is_admin'] = is_admin
         return f(*args, **kwargs)

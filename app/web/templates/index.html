@@ -206,7 +206,17 @@ block style %}
                 </thead>
                 
                 <tbody>
-                  <tr v-for="(item, index) in tasks" :key="index">
+                  <tr v-if="tasks.length === 0">
+                    <td
+                      :colspan="headerSelected.length"
+                      class="text-center text-muted py-3"
+                    >
+                      Không có công việc nào
+                    </td>
+                  </tr>
+                  <tr
+                    v-else 
+                    v-for="(item, index) in tasks" :key="index">
                     <td v-for="(header, index) in headerSelected" :key="index">
                       {{ item[headerKeyMap[header]] }}
                     </td>
@@ -595,7 +605,16 @@ block style %}
             return item["company"].trim();
           });
           listCompanies = Array.from(new Set(listCompanies));
-          dt = listCompanies.map((item) => ({ value: item, label: item }));
+          let coms = []
+          try{
+            coms = await axios.get('/api/sheets/watch').then(res => res.data.data)
+            coms = coms.map(item => item.name.trim())
+          }catch(e){
+            console.log(e);
+          }
+          listCompanies = listCompanies.concat(coms)
+          listCompanies = Array.from(new Set(listCompanies))
+          dt = listCompanies.filter(item => item != "").map((item) => ({ value: item, label: item }));
           dt.unshift({
             value: "",
             label: "Tất cả công ty",

@@ -99,7 +99,9 @@ class GoogleSheets:
 
         # Gửi batch update
         if updates:
+            # print('😉 Chưa gặp lỗi:')
             self.sheet.values().batchUpdate(spreadsheetId=main_sheet_id, body={'valueInputOption': 'USER_ENTERED', 'data': updates}).execute()
+            # print('😒 Đã gặp lỗi:')
 
         # Xóa các task không còn tồn tại
         if len(existing_task_ids) > 0:
@@ -138,11 +140,12 @@ class GoogleSheets:
         # Xóa từ hàng cuối để tránh lệch index
         rows_to_delete.sort(reverse=True)
 
+        print(settings.MAIN_SHEET_ID, int(settings.MAIN_SHEET_ID))
         # Gửi batch request để xóa hàng
         requests = [{
             "deleteDimension": {
                 "range": {
-                    "sheetId": settings.MAIN_SHEET_ID,  # Sử dụng đúng sheetId thay vì mặc định 0
+                    "sheetId": int(settings.MAIN_SHEET_ID),  # Sử dụng đúng sheetId thay vì mặc định 0
                     "dimension": "ROWS",
                     "startIndex": idx - 1,
                     "endIndex": idx
@@ -264,11 +267,17 @@ class GoogleSheets:
                         # Nếu không có link, trả về giá trị bình thường
                         row_values.append(cell.get("formattedValue", ""))
                 # print(json.dumps(row_values, indent=4, ensure_ascii=False))
-                row_values.append(row_index)
-                values.append(row_values)
+
+                row_values.append(row_index)  
+                if any(cell.strip() if isinstance(cell, str) else str(cell).strip() for cell in row_values[:-1]):  
+                    values.append(row_values) 
+
                 row_index += 1
 
-            values = [row for row in values if any(cell.strip() if isinstance(cell, str) else str(cell) for cell in row)]
+            values = [
+                row for row in values
+                if any(cell.strip() if isinstance(cell, str) else str(cell) for cell in row)
+            ]
             if not values:
                 print("Google Sheet is empty!")
                 return {"headers": [], "data": []}

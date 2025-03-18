@@ -29,7 +29,9 @@ style %}
     <div class="row">
       <div class="col-lg-12">
         <div class="card">
-          <div class="card-header d-flex flex-wrap gap-2 justify-content-between align-items-center">
+          <div
+            class="card-header d-flex flex-wrap gap-2 justify-content-between align-items-center"
+          >
             <div class="d-flex align-items-center">
               <h5 class="card-title mb-0 me-2">List Tasks</h5>
             </div>
@@ -174,7 +176,13 @@ style %}
       </div>
     </div>
   </div>
-  <div class="modal fade" id="sendTelegramModal" tabindex="-1" aria-labelledby="sendTelegramModalLabel" aria-hidden="true">
+  <div
+    class="modal fade"
+    id="sendTelegramModal"
+    tabindex="-1"
+    aria-labelledby="sendTelegramModalLabel"
+    aria-hidden="true"
+  >
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
@@ -348,11 +356,13 @@ style %}
       };
 
       const selectSheet = async (sheetName) => {
-        let coms = []
-        try{
-          coms = await axios.get('/api/sheets/watch').then(res => res.data.data)
-          coms = coms.map(item => item.name.trim())
-        }catch(e){
+        let coms = [];
+        try {
+          coms = await axios
+            .get("/api/sheets/watch")
+            .then((res) => res.data.data);
+          coms = coms.map((item) => item.name.trim());
+        } catch (e) {
           console.log(e);
         }
         const storedHeaders = localStorage.getItem("headers");
@@ -389,7 +399,7 @@ style %}
               listStatus.push(item);
             }
           });
-          listCompanies = listCompanies.concat(coms)
+          listCompanies = listCompanies.concat(coms);
           listCompanies = Array.from(new Set(listCompanies));
           listStatus = Array.from(new Set(listStatus));
           listUsers = Array.from(new Set(listUsers));
@@ -399,16 +409,20 @@ style %}
             label: "Tất cả trạng thái",
           });
           choices.status.setChoices(dt, "value", "label", true);
-          dt = listCompanies.map((company) => ({
-            value: company,
-            label: company,
-          }));
+          dt = listCompanies
+            .filter((item) => item != "")
+            .map((company) => ({
+              value: company,
+              label: company,
+            }));
           dt.unshift({
             value: "",
             label: "Tất cả công ty",
           });
           choices.company.setChoices(dt, "value", "label", true);
-          dt = listUsers.filter(item => item != "").map((user) => ({ value: user, label: user }));
+          dt = listUsers
+            .filter((item) => item != "")
+            .map((user) => ({ value: user, label: user }));
           dt.unshift({
             value: "",
             label: "Tất cả nhân sự",
@@ -417,8 +431,8 @@ style %}
 
           // initEventSource(sheetName);
         } catch (e) {
-          showToast('Lỗi khi tải dữ liệu, đang thử tải lại...', 'error')
-          await selectSheet('Tasks');
+          showToast("Lỗi khi tải dữ liệu, đang thử tải lại...", "error");
+          await selectSheet("Tasks");
           console.error("Error fetching sheet data:", e);
         } finally {
           loading.value = false;
@@ -522,9 +536,9 @@ style %}
       };
 
       async function sendMessage() {
-        if (modelSelectedUserTelegram.value.length == 0){
+        if (modelSelectedUserTelegram.value.length == 0) {
           showToast(`Vui lòng chọn người nhận!`, "error");
-          return
+          return;
         }
         loadingTelegram.submit = true;
         try {
@@ -532,31 +546,50 @@ style %}
           const canvas = await html2canvas(table, {
             scale: 3,
             useCORS: true,
-            backgroundColor: null,
+            backgroundColor: '#fff',
           });
           const imageData = canvas.toDataURL("image/png");
-          // Gửi ảnh lên backend
-          const res = await axios.post("/api/telegrams/send-table", {
-            image: imageData,
-            users: modelSelectedUserTelegram.value,
-            content: messageContent.value,
-          });
-
-          if (res.status === 200 && res.data.success) {
-            showToast(res.data.message || "Ảnh đã gửi thành công!", "success");
-            modelSelectedUserTelegram.value = [];
-            choices.userTelegram.removeActiveItems();
-          } else {
-            showToast(res.data.error || "Có lỗi xảy ra khi gửi ảnh!", "error");
+          let down = false
+          if(down){
+            const link = document.createElement("a");
+            link.href = imageData;
+            link.download = `Report_${
+              new Date().toISOString().split("T")[0]
+            }.png`;
+            document.body.appendChild(link);
+            link.click();
+  
+            // Xóa khỏi DOM sau khi tải
+            document.body.removeChild(link);
+            showToast("Ảnh đã được lưu thành công!", "success");
+          }else{
+            // Gửi ảnh lên backend
+            const res = await axios.post("/api/telegrams/send-table", {
+              image: imageData,
+              users: modelSelectedUserTelegram.value,
+              content: messageContent.value,
+            });
+  
+            if (res.status === 200 && res.data.success) {
+              showToast(res.data.message || "Ảnh đã gửi thành công!", "success");
+              modelSelectedUserTelegram.value = [];
+              choices.userTelegram.removeActiveItems();
+            } else {
+              showToast(res.data.error || "Có lỗi xảy ra khi gửi ảnh!", "error");
+            }
           }
+
           const modalElement = document.getElementById("sendTelegramModal");
           const modalInstance = bootstrap.Modal.getInstance(modalElement);
           modalInstance.hide();
         } catch (e) {
-          if(e?.response?.status == 500){
-            let ids = e.response.data?.errors.map(item => item.chat_id);
-            let userError = choices.userTelegram._currentState.choices.filter(item => ids.includes(item.value)).map(item => item.label).join(', ')
-            e.message = `Không thể gửi được cho: ${userError}`
+          if (e?.response?.status == 500) {
+            let ids = e.response.data?.errors.map((item) => item.chat_id);
+            let userError = choices.userTelegram._currentState.choices
+              .filter((item) => ids.includes(item.value))
+              .map((item) => item.label)
+              .join(", ");
+            e.message = `Không thể gửi được cho: ${userError}`;
           }
           showToast(e.message || e);
         }

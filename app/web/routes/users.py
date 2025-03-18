@@ -13,13 +13,13 @@ from config import hash_password
 def get_users():
     try:
         db = User()
-        admin_id = settings.ADMIN_ID
+        user_id = int(settings.ADMIN_ID)
         if request.method == 'GET':
             users = db.get()
             users = [{
                 **n.to_dict(),
                 'last_login': n.last_login.strftime('%Y-%m-%d %H:%M:%S') if n.last_login else None
-            } for n in users if n.id != admin_id]
+            } for n in users if n.id != user_id]
             return jsonify({
                 "success": True,
                 "data": users

@@ -7,7 +7,7 @@ class Settings:
     load_dotenv()
 
     # Main ID Admin
-    ADMIN_ID = 1
+    ADMIN_ID = os.getenv('ADMIN_ID', '1')
     
     # Base paths
     BASE_DIR = Path(__file__).resolve().parent.parent
@@ -58,11 +58,10 @@ class Settings:
     TASK_STATUS_SUCCESS = 'Ðã hoàn thành'
 
     # Upload
-    UPLOAD_FOLDER = "uploads"
+    UPLOAD_FOLDER = BASE_DIR / "uploads"
 
-    # Template messate telegram
-    TEMPLATE_FILE = os.path.abspath("message_template.txt")
-    TEMPLATE_DEFAULT_FILE = os.path.abspath("config/default_template.txt")
+    TEMPLATE_FILE = BASE_DIR / "message_template.txt"
+    TEMPLATE_DEFAULT_FILE = BASE_DIR / "config/default_template.txt"
     
 
 settings = Settings()

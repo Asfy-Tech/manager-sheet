@@ -213,7 +213,7 @@ class BotFather:
                 is_admin = False
                 if 'is_admin' in row and row.get('is_admin'):
                     is_admin = True
-
+                    
                 context = {
                     "user": user,
                     "today": today,
@@ -222,6 +222,8 @@ class BotFather:
                     "mess_ids": mess_ids,
                     "is_admin": is_admin
                 }
+                # print(settings.TEMPLATE_FILE)
+                # print(settings.TEMPLATE_DEFAULT_FILE)
                 try:
                     with open(settings.TEMPLATE_FILE, "r", encoding="utf-8") as f:
                         template_content = f.read()
@@ -252,10 +254,15 @@ class BotFather:
         for row in data:
             sheet = row.get('sheet')
             name = sheet.get('PHỤ TRÁCH').strip()
+            company = sheet.get('CÔNG TY').strip()
             if name in res:
-                res[name].append(row)
+                if company not in res[name]:
+                    res[name][company] = []
+                res[name][company].append(row)
             else:
-                res[name] = [row]
+                res[name] = {
+                    company: [row]
+                }
         return res
     
     def dd(self, data):
