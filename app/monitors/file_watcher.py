@@ -114,8 +114,8 @@ class FileWatcher:
             if checkUpdate and time is not None:
                 sheet[settings.TASK_FINISH_DATE] = time
             sheet_updates_needed[sheet_id] = sheet
-        success = gg_sheets.update_task(sheet_updates_needed)
-        print(f'Status Import: {success}')
+        # success = gg_sheets.update_task(sheet_updates_needed)
+        # print(f'Status Import: {success}')
         bot = BotFather()
         bot.send_multiple_tasks(self._messages)
 

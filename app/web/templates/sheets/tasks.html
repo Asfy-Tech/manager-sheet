@@ -513,7 +513,7 @@ style %}
           if (res.status == 200) {
             dt = res.data?.data.map((user) => ({
               value: user.chat_id,
-              label: user.name,
+              label: user.full_name,
             }));
             choices.userTelegram.setChoices(dt, "value", "label", true);
           }

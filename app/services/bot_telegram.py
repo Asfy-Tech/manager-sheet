@@ -69,22 +69,22 @@ class BotFather:
         }
         return self._request("sendMessage", payload)
 
-    def send_photo(self, chat_id, photo_path, caption=None):
-        """Gửi ảnh đến một chat_id"""
+    def send_photo(self, chat_id, photo_data, caption=None):
+        """Gửi ảnh đến một chat_id từ dữ liệu byte."""
         url = f"{self.base_url}/sendPhoto"
-        with open(photo_path, "rb") as photo:
-            payload = {
-                "chat_id": chat_id,
-                "caption": caption,
-                "parse_mode": ParseMode.MARKDOWN
-            }
-            files = {"photo": photo}
-            try:
-                response = requests.post(url, data=payload, files=files)
-                response.raise_for_status()
-                return response.json()
-            except requests.exceptions.RequestException as e:
-                return {"error": str(e)}
+        payload = {
+            "chat_id": chat_id,
+            "caption": caption,
+            "parse_mode": ParseMode.MARKDOWN
+        }
+        files = {"photo": ("image.png", photo_data, "image/png")}
+        try:
+            response = requests.post(url, data=payload, files=files, timeout=120)
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            print(f"Error sending photo: {e}")
+            return {"error": str(e)}
 
     def send_audio(self, chat_id, audio_url, caption=None):
         """Gửi âm thanh đến một chat_id"""
@@ -202,7 +202,6 @@ class BotFather:
                         content="Tài khoản không tồn tại trên hệ thông!"
                     )
                     continue
-    
                 late = self.corverData(row.get('late', []))
                 today = self.corverData(row.get('today', []))
                 future = self.corverData(row.get('future', []))

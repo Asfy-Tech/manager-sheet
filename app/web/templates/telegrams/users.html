@@ -44,6 +44,7 @@
                   <tr>
                     <th>STT</th>
                     <th>Tên nhân viên</th>
+                    <th>Tên trên sheet</th>
                     <th>Chat Telegram Id</th>
                     <th>Quyền</th>
                     <th>Hành động</th>
@@ -52,6 +53,7 @@
                 <tbody>
                   <tr v-for="(item, index) in users" :key="index">
                     <td>{{ ++index }}</td>
+                    <td>{{ item.full_name }}</td>
                     <td>{{ item.name }}</td>
                     <td>
                       <a href="#" class="btn btn-sm btn-soft-primary">
@@ -118,13 +120,22 @@
         <div class="modal-body">
           <form @submit.prevent="submitEdit">
             <div class="row g-3">
-              <div class="col-xxl-12">
+              <div class="col-sm-6">
                 <label for="editName" class="form-label">Tên nhân viên</label>
                 <input
                   type="text"
                   class="form-control"
+                  v-model="edit.full_name"
+                  placeholder="Tên nhân viên"
+                />
+              </div>
+              <div class="col-sm-6">
+                <label for="editName" class="form-label">Tên trên sheet</label>
+                <input
+                  type="text"
+                  class="form-control"
                   v-model="edit.name"
-                  placeholder="Tên phòng chat"
+                  placeholder="Tên trên sheet"
                 />
               </div>
               <div class="col-sm-6">
@@ -233,14 +244,25 @@
         <div class="modal-body">
           <form @submit.prevent="submitCreate()">
             <div class="row g-3">
-              <div class="col-xxl-12">
+              <div class="col-sm-6">
                 <div>
                   <label for="firstName" class="form-label">Tên nhân viên</label>
                   <input
                     type="text"
                     class="form-control"
-                    v-model="create.name"
+                    v-model="create.full_name"
                     placeholder="Tên nhân viên"
+                  />
+                </div>
+              </div>
+              <div class="col-sm-6">
+                <div>
+                  <label for="firstName" class="form-label">Tên trên sheet</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    v-model="create.name"
+                    placeholder="Tên trên sheet"
                   />
                 </div>
               </div>
@@ -308,6 +330,7 @@
       const users = Vue.ref([]);
       const edit = Vue.ref({
         id: "",
+        full_name: "",
         name: "",
         chat_id: "",
         role: "2",
@@ -315,6 +338,7 @@
 
       const create = Vue.ref({
         name: "",
+        full_name: "",
         chat_id: "",
         role: "2",
       });
@@ -333,7 +357,7 @@
       }
 
       async function submitEdit() {
-      if (!edit.value.name || !edit.value.chat_id) {
+      if (!edit.value.name || !edit.value.full_name || !edit.value.chat_id) {
         showToast("Vui lòng nhập đầy đủ thông tin!", "error");
         return;
       }
@@ -433,7 +457,7 @@
         create.value.name = create.value.name.trim();
         create.value.chat_id = create.value.chat_id.trim();
 
-        if (!create.value.name || !create.value.chat_id) {
+        if (!create.value.name || !create.value.full_name || !create.value.chat_id) {
           showToast("Vui lòng nhập đủ thông tin!", "error");
           return;
         }

@@ -1,4 +1,4 @@
-message = f"⏳ `Anh {user.name} ơi: `\n\n"
+message = f"⏳ `{user.full_name} ơi: `\n\n"
 
 if today:
     message += "🔴 *CÔNG VIỆC ĐẾN HẠN HÔM NAY* 🔴\n"

@@ -78,6 +78,7 @@ def get_tele_users():
 
         result = db.create(
             name=data.get('name', ''),
+            full_name=data.get('full_name', ''),
             chat_id=data.get('chat_id', ''),
             role=data.get('role', '2'),
         )
@@ -151,7 +152,7 @@ def info_get_tele_users(id):
                 }), 404
 
             # Update the user's info (you can customize this as per your fields)
-            sheet.update(name=data.get('name'),chat_id=data.get('chat_id'),role=data.get('role'))  # Assuming you have an update method
+            sheet.update(full_name=data.get('full_name'),name=data.get('name'),chat_id=data.get('chat_id'),role=data.get('role'))  # Assuming you have an update method
             return jsonify({
                 "success": True,
                 "message": "Cập nhật thành công",
@@ -163,9 +164,9 @@ def info_get_tele_users(id):
                 "error": str(e)
             }), 500
 
-import os
-import time
+
 import base64
+import re
 @routes.route("/api/telegrams/send-table", methods=["POST"])
 def send_table_to_telegram():
     try:
@@ -181,19 +182,8 @@ def send_table_to_telegram():
         if not image_base64:
             return jsonify({"success": False, "error": "No image provided"}), 400
 
-        # Chuyển base64 thành file ảnh
-        image_data = image_base64.replace("data:image/png;base64,", "")
+        image_data = re.sub(r"^data:image\/[a-zA-Z]+;base64,", "", image_base64)
         image_data = base64.b64decode(image_data)
-
-        # Tạo thư mục nếu chưa tồn tại
-        if not os.path.exists(settings.UPLOAD_FOLDER):
-            os.makedirs(settings.UPLOAD_FOLDER)
-
-        # Lưu ảnh vào server
-        filename = f"table_{int(time.time())}.png"
-        filepath = os.path.join(settings.UPLOAD_FOLDER, filename)
-        with open(filepath, "wb") as f:
-            f.write(image_data)
 
         # Gửi ảnh lên Telegram cho từng chat_id trong danh sách
         errors = []
@@ -204,14 +194,9 @@ def send_table_to_telegram():
         for chat_id in chat_ids:
             userTel = TelegramUser.first(chat_id=chat_id)
             if userTel:
-                response = bot.send_photo(chat_id, filepath, caption=caption)
+                response = bot.send_photo(chat_id, image_data, caption=caption)
                 if "error" in response:
                     errors.append({"chat_id": chat_id, "error": response["error"]})
-
-        # Xóa file sau khi gửi xong
-        if os.path.exists(filepath):
-            os.remove(filepath)
-
         if errors:
             return jsonify({"success": False, "errors": errors}), 500
 

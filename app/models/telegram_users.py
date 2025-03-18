@@ -7,10 +7,11 @@ class TelegramUser(BaseModel):
     
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(100), nullable=False)
+    full_name = Column(String(100), nullable=False)
     chat_id = Column(String(50), unique=True, nullable=False)
     role = Column(Integer, default=1, comment="1: Quản trị viên, 2: Nhân sự")
 
-    __fillable__: List[str] = ["name", "chat_id", "role"]
+    __fillable__: List[str] = ["name", "chat_id", "role", "full_name"]
 
     @classmethod
     def find_by_chat_id(cls, chat_id: str):

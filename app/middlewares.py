@@ -21,11 +21,11 @@ def login_required(f):
             else:
                 user.last_login = datetime.now(vntz)
                 user.save()
-            print(json.dumps({
-                'user_id': user.id ,
-                'admin_id': settings.ADMIN_ID,
-                'bool': user.id == int(settings.ADMIN_ID)
-            }))
+            # print(json.dumps({
+            #     'user_id': user.id ,
+            #     'admin_id': settings.ADMIN_ID,
+            #     'bool': user.id == int(settings.ADMIN_ID)
+            # }))
             if user.id == int(settings.ADMIN_ID):
                 is_admin = True
             session['is_admin'] = is_admin
