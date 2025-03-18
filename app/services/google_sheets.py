@@ -4,6 +4,7 @@ from googleapiclient.discovery import build
 from oauth2client.service_account import ServiceAccountCredentials
 from config.settings import settings
 import re
+from app.models.notifications import Notification
 from googleapiclient.errors import HttpError
 from datetime import datetime
 import json
@@ -34,15 +35,10 @@ class GoogleSheets:
         Returns:
             bool: True nếu thành công, False nếu thất bại.
         """
-        is_valid, main_sheet_id, _, sheet_ids  = self.validate_sheet_url(settings.GOOGLE_SHEET_MAIN_LINK)
+        is_valid, main_sheet_id  = self.set_id_from_path_sheet(settings.GOOGLE_SHEET_MAIN_LINK)
         if not is_valid:
             return False
 
-
-        sheet_ed = sheet_ids.get(sheet_name)
-        if sheet_ed is None:
-            print(f"No search file sheet: {sheet_name}")
-            return False
 
         # Lấy dữ liệu hiện có trong Google Sheets
         result = self.sheet.values().get(spreadsheetId=main_sheet_id, range=sheet_name).execute()
@@ -107,10 +103,10 @@ class GoogleSheets:
 
         # Xóa các task không còn tồn tại
         if len(existing_task_ids) > 0:
-            self.delete_tasks(values, existing_task_ids, main_sheet_id, sheet_ed)
+            self.delete_tasks(values, existing_task_ids, main_sheet_id)
 
 
-    def delete_tasks(self, values, existing_task_ids,main_sheet_id, sheet_id):
+    def delete_tasks(self, values, existing_task_ids,main_sheet_id):
         """
         Xóa các task không còn tồn tại trong danh sách cập nhật.
         """
@@ -130,8 +126,6 @@ class GoogleSheets:
             print("No task need delete")
             return True
 
-        print(f"Remove Task: {tasks_to_delete}")
-
         rows_to_delete = [
             idx for idx, row in enumerate(values[1:], start=2)
             if len(row) > task_id_col and row[task_id_col] in tasks_to_delete
@@ -148,7 +142,7 @@ class GoogleSheets:
         requests = [{
             "deleteDimension": {
                 "range": {
-                    "sheetId": sheet_id,  # Sử dụng đúng sheetId thay vì mặc định 0
+                    "sheetId": settings.MAIN_SHEET_ID,  # Sử dụng đúng sheetId thay vì mặc định 0
                     "dimension": "ROWS",
                     "startIndex": idx - 1,
                     "endIndex": idx
@@ -253,6 +247,8 @@ class GoogleSheets:
             ).execute()
 
             values = []
+            row_index = 1
+
             for row in result["sheets"][0]["data"][0]["rowData"]:
                 row_values = []
                 for cell in row.get("values", []):
@@ -268,16 +264,18 @@ class GoogleSheets:
                         # Nếu không có link, trả về giá trị bình thường
                         row_values.append(cell.get("formattedValue", ""))
                 # print(json.dumps(row_values, indent=4, ensure_ascii=False))
+                row_values.append(row_index)
                 values.append(row_values)
+                row_index += 1
 
-            values = [row for row in values if any(cell.strip() for cell in row)]
-
+            values = [row for row in values if any(cell.strip() if isinstance(cell, str) else str(cell) for cell in row)]
             if not values:
                 print("Google Sheet is empty!")
                 return {"headers": [], "data": []}
 
             # Chuyển dữ liệu thành dictionary
-            headers = [h for h in values[0] if h.strip()]  
+            headers = [h for h in values[0] if isinstance(h, str) and h.strip()]
+            headers.append("row_id")
             data = [dict(zip(headers, row)) for row in values[1:]]
 
             return {"headers": headers, "data": data}
@@ -291,6 +289,55 @@ class GoogleSheets:
     def get_service_account_email(self):
         return self.credentials.service_account_email
     
+    def update_task_ids(self, sheet_updates):
+        """
+        Cập nhật task_id cho các hàng trong Google Sheet.
+        """
+        if not sheet_updates:
+            return True
+
+        for id, row in sheet_updates.items():
+            try:
+                _, main_sheet_id = self.set_id_from_path_sheet(row.get('link'))
+                sheet_id = row.get('main_sheet_id')
+                updates = row.get('updates')
+
+                if not updates:
+                    continue
+
+                data_updates = []
+                for up in updates:
+                    row_id = up.get('row_id')
+                    value = up.get('value')
+
+                    if row_id is not None and value is not None:
+                        data_updates.append({
+                            "range": f"Tasks!A{row_id}",
+                            "values": [[value]]
+                        })
+
+                if not data_updates:
+                    continue
+
+                body = {
+                    'valueInputOption': 'USER_ENTERED',
+                    'data': data_updates
+                }
+
+                try:
+                    self.sheet.values().batchUpdate(spreadsheetId=main_sheet_id, body=body).execute()
+                    print(f"Update success {len(data_updates)} task_id(s) in Google Sheet {main_sheet_id}")
+                except Exception as e:
+                    Notification.create(
+                        title=f"Công ty: {row.get('name')}",
+                        content="Không có quyền chỉnh sửa"
+                    )
+                    print(f"Error when update Google Sheet {main_sheet_id}: {e}")
+            except Exception as e:
+                print(f'Error when update: {id}')
+
+        return True
+
 
 def get_tasks(sheet_name):
     gg_sheet = GoogleSheets()

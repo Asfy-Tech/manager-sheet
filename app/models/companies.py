@@ -11,6 +11,7 @@ class Companies(BaseModel):
     name = Column(String(255), nullable=False)
     sheet_link = Column(String(255), nullable=True)
     status = Column(String(50), default='active')
+    main_sheet_id = Column(String(100), nullable=True)
     last_active = Column(DateTime, default=lambda: datetime.now(vn_tz), onupdate=lambda: datetime.now(vn_tz))
     comment = Column(String(50), nullable=True)
 

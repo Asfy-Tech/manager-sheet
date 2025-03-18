@@ -55,14 +55,20 @@ def get_watch_sheet():
             
         gg_sheet = GoogleSheets()
         is_valid, sheet_id, message, sheet_ids = gg_sheet.validate_sheet_url(data['link'])
-        
+
         if not is_valid:
             raise BadRequest(f"Không thể truy cập sheet, hãy cấp quyền cho: {gg_sheet.get_service_account_email()}")
             
+
+        main_sheet_id = sheet_ids.get('Tasks')
+        if main_sheet_id is None:
+            raise BadRequest(f"Không tìm thấy tab sheet tên là Tasks")
+
         result = db.create(
             name=data.get('name', ''),
             sheet_link=data['link'],
             status='active',
+            main_sheet_id=main_sheet_id,
             comment='',
         )
         

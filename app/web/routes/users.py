@@ -1,7 +1,7 @@
 from . import routes
 from flask import current_app as app, session
 from flask import jsonify, stream_with_context, Response, request
-import json
+from config import settings
 from werkzeug.exceptions import NotFound, BadRequest
 from app.models.telegram_users import TelegramUser
 from app.models.users import User
@@ -13,12 +13,13 @@ from config import hash_password
 def get_users():
     try:
         db = User()
+        admin_id = settings.ADMIN_ID
         if request.method == 'GET':
             users = db.get()
             users = [{
                 **n.to_dict(),
                 'last_login': n.last_login.strftime('%Y-%m-%d %H:%M:%S') if n.last_login else None
-            } for n in users]
+            } for n in users if n.id != admin_id]
             return jsonify({
                 "success": True,
                 "data": users

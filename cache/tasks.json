@@ -12,7 +12,8 @@
         "THÀNH PHẨM": "",
         "DUYỆT": "",
         "GHI CHÚ": "",
-        "CÔNG TY": "Add Today CT"
+        "row_id": 2,
+        "CÔNG TY": "SƠN HÙNG MTP"
     },
     "TASK_2d0357b7": {
         "TASK_ID": "TASK_2d0357b7",
@@ -27,7 +28,8 @@
         "THÀNH PHẨM": "",
         "DUYỆT": "",
         "GHI CHÚ": "",
-        "CÔNG TY": "Add Today CT"
+        "row_id": 3,
+        "CÔNG TY": "SƠN HÙNG MTP"
     },
     "TASK_4f0e00e6": {
         "TASK_ID": "TASK_4f0e00e6",
@@ -42,7 +44,8 @@
         "THÀNH PHẨM": "",
         "DUYỆT": "",
         "GHI CHÚ": "",
-        "CÔNG TY": "Add Today CT"
+        "row_id": 5,
+        "CÔNG TY": "SƠN HÙNG MTP"
     },
     "TASK_e666a28c": {
         "TASK_ID": "TASK_e666a28c",
@@ -57,7 +60,8 @@
         "THÀNH PHẨM": "",
         "DUYỆT": "FALSE",
         "GHI CHÚ": "",
-        "CÔNG TY": "Add Today CT"
+        "row_id": 7,
+        "CÔNG TY": "SƠN HÙNG MTP"
     },
     "TASK_b001a7de": {
         "TASK_ID": "TASK_b001a7de",
@@ -72,7 +76,8 @@
         "THÀNH PHẨM": "",
         "DUYỆT": "",
         "GHI CHÚ": "",
-        "CÔNG TY": "Add Today CT"
+        "row_id": 8,
+        "CÔNG TY": "SƠN HÙNG MTP"
     },
     "TASK_90f8f405": {
         "TASK_ID": "TASK_90f8f405",
@@ -87,7 +92,8 @@
         "THÀNH PHẨM": "",
         "DUYỆT": "",
         "GHI CHÚ": "",
-        "CÔNG TY": "Add Today CT"
+        "row_id": 11,
+        "CÔNG TY": "SƠN HÙNG MTP"
     },
     "TASK_79a6fb84": {
         "TASK_ID": "TASK_79a6fb84",
@@ -105,25 +111,8 @@
         },
         "DUYỆT": "",
         "GHI CHÚ": "",
-        "CÔNG TY": "Add Today CT"
-    },
-    "TASK_72e3aeb9": {
-        "TASK_ID": "TASK_72e3aeb9",
-        "HẠNG MỤC": "Tạo hiệu ứng đám đông",
-        "VIỆC CẦN LÀM": "Chiến dịch tặng bánh khai trương",
-        "YÊU CẦU CÔNG VIỆC": "Tặng 200 bánh mỳ dùng thử vào những ngày trước khai trương, trên các hội nhóm dành cho sinh viên…nhằm tạo hiệu ứng gây sự chú ý với người qua đường",
-        "PHỤ TRÁCH": "Phương Anh - MKT",
-        "HỖ TRỢ": "",
-        "TRẠNG THÁI": "Ðã hoàn thành",
-        "START": "",
-        "DEADLINE": "13/03/2025",
-        "THÀNH PHẨM": {
-            "text": "Thành quả sau 1 ngày làm việc vất vả là bảng theo dõi",
-            "link": "https://facebook.com/"
-        },
-        "DUYỆT": "",
-        "GHI CHÚ": "",
-        "CÔNG TY": "Add Today CT"
+        "row_id": 12,
+        "CÔNG TY": "SƠN HÙNG MTP"
     },
     "TASK_131158c9": {
         "TASK_ID": "TASK_131158c9",
@@ -138,7 +127,8 @@
         "THÀNH PHẨM": "",
         "DUYỆT": "",
         "GHI CHÚ": "",
-        "CÔNG TY": "Add Today CT"
+        "row_id": 14,
+        "CÔNG TY": "SƠN HÙNG MTP"
     },
     "TASK_8f25a489": {
         "TASK_ID": "TASK_8f25a489",
@@ -153,7 +143,8 @@
         "THÀNH PHẨM": "",
         "DUYỆT": "",
         "GHI CHÚ": "",
-        "CÔNG TY": "Add Today CT"
+        "row_id": 15,
+        "CÔNG TY": "SƠN HÙNG MTP"
     },
     "TASK_507be7c1": {
         "TASK_ID": "TASK_507be7c1",
@@ -168,7 +159,8 @@
         "THÀNH PHẨM": "",
         "DUYỆT": "",
         "GHI CHÚ": "",
-        "CÔNG TY": "Add Today CT"
+        "row_id": 17,
+        "CÔNG TY": "SƠN HÙNG MTP"
     },
     "TASK_6e1b1ff8": {
         "TASK_ID": "TASK_6e1b1ff8",
@@ -183,6 +175,39 @@
         "THÀNH PHẨM": "",
         "DUYỆT": "",
         "GHI CHÚ": "",
-        "CÔNG TY": "Add Today CT"
+        "row_id": 18,
+        "CÔNG TY": "SƠN HÙNG MTP"
+    },
+    "TASK_1742267637946299": {
+        "TASK_ID": "TASK_1742267637946299",
+        "HẠNG MỤC": "XIn chào",
+        "VIỆC CẦN LÀM": "Test Nhé",
+        "YÊU CẦU CÔNG VIỆC": "OKEY !@#",
+        "PHỤ TRÁCH": "",
+        "HỖ TRỢ": "",
+        "TRẠNG THÁI": "Tạm hoãn",
+        "START": "",
+        "DEADLINE": "",
+        "THÀNH PHẨM": "",
+        "DUYỆT": "",
+        "GHI CHÚ": "",
+        "row_id": 19,
+        "CÔNG TY": "SƠN HÙNG MTP"
+    },
+    "TASK_1742267761938481": {
+        "TASK_ID": "TASK_1742267761938481",
+        "HẠNG MỤC": "Cá Ao tin",
+        "VIỆC CẦN LÀM": "a1123",
+        "YÊU CẦU CÔNG VIỆC": "",
+        "PHỤ TRÁCH": "",
+        "HỖ TRỢ": "",
+        "TRẠNG THÁI": "",
+        "START": "",
+        "DEADLINE": "",
+        "THÀNH PHẨM": "",
+        "DUYỆT": "",
+        "GHI CHÚ": "",
+        "row_id": 20,
+        "CÔNG TY": "SƠN HÙNG MTP"
     }
 }

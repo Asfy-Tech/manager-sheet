@@ -37,6 +37,7 @@ class Settings:
 
     # Google settings
     GOOGLE_SHEET_MAIN_LINK = os.getenv("GOOGLE_SHEET_MAIN_LINK")
+    MAIN_SHEET_ID = os.getenv("MAIN_SHEET_ID")
     CREDENTIALS_PATH = BASE_DIR / "credentials.json"
     
     # Monitoring settings

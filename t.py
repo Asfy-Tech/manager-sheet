@@ -5,16 +5,16 @@ watcher = FileWatcher(interval=30)
 watcher._check_files(GoogleSheets())
 
 # from app.models.base import Base, engine
-from app.models.telegram_message import TelegramMessage
-# from app.models.telegram_users import TelegramUser
-from app.models.users import User
-# from app.models.tasks import Task
+# # from app.models.telegram_message import TelegramMessage
+# # from app.models.telegram_users import TelegramUser
+# # from app.models.users import User
+# # from app.models.tasks import Task
 # from app.models.companies import Companies
-# from app.models.notifications import Notification
-from app.models.notificationw import Notifications
+# # from app.models.notifications import Notification
+# # from app.models.notificationw import Notifications
 # Base.metadata.create_all(engine)
-from config import hash_password, check_password
-from datetime import datetime
+# from config import hash_password, check_password
+# from datetime import datetime
 
 # User.create(
 #   name='Trần Văn Hưng',

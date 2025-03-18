@@ -348,6 +348,13 @@ style %}
       };
 
       const selectSheet = async (sheetName) => {
+        let coms = []
+        try{
+          coms = await axios.get('/api/sheets/watch').then(res => res.data.data)
+          coms = coms.map(item => item.name.trim())
+        }catch(e){
+          console.log(e);
+        }
         const storedHeaders = localStorage.getItem("headers");
         try {
           loading.value = true;
@@ -382,6 +389,7 @@ style %}
               listStatus.push(item);
             }
           });
+          listCompanies = listCompanies.concat(coms)
           listCompanies = Array.from(new Set(listCompanies));
           listStatus = Array.from(new Set(listStatus));
           listUsers = Array.from(new Set(listUsers));
@@ -400,7 +408,7 @@ style %}
             label: "Tất cả công ty",
           });
           choices.company.setChoices(dt, "value", "label", true);
-          dt = listUsers.map((user) => ({ value: user, label: user }));
+          dt = listUsers.filter(item => item != "").map((user) => ({ value: user, label: user }));
           dt.unshift({
             value: "",
             label: "Tất cả nhân sự",

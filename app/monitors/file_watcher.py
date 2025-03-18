@@ -1,5 +1,5 @@
 import time
-import threading
+import random
 import gc
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -187,9 +187,10 @@ class FileWatcher:
         companies = Companies.get_sorted_by_last_active()
         data_sheets = {}
         self._messages = {'late': [], 'today': [], 'future': []}
+        generate_task_id = {}
         for company in companies:
             try:
-                print(f'Start company: {company.name}')
+                print(f'Start company: {company.id}')
                 link = company.sheet_link
                 res = gg_sheets.get_data_from_link(link, 'Tasks', formatJson=True)
                 print(f'Read success company: {company.id}')
@@ -207,9 +208,27 @@ class FileWatcher:
                 
                 print(f'-><- Yes data success company: {company.id}')
                 for dt in data:
+                    if not dt.get(settings.TASK_ID):
+                        if any(value for key, value in dt.items() if key != "row_id"):
+                            dt[settings.TASK_ID] = f"TASK_{int(time.time() * 1000)}{random.randint(100, 999)}"
+                            if company.id not in generate_task_id:
+                                generate_task_id[company.id] = {
+                                    "data": res,
+                                    "name": company.name,
+                                    "link": link,
+                                    'main_sheet_id': company.main_sheet_id,
+                                    "updates": []
+                                }
+                            generate_task_id[company.id]["updates"].append({
+                                'row_id': dt.get('row_id'),
+                                'value': dt[settings.TASK_ID],
+                            })
+                            print(f"Generated task_id: {dt[settings.TASK_ID]} for company: {company.name}")
+
                     if dt.get(settings.TASK_ID):
                         dt['CÔNG TY'] = company.name
                         data_sheets[dt.get(settings.TASK_ID)] = dt
+                 
                 company.update(last_active=datetime.now(vn_timezone))
                 if company.id in self._cache_city:
                     self._cache_city.remove(company.id)
@@ -222,8 +241,11 @@ class FileWatcher:
                         content=e
                     )
         print('Read full file success')
+        if generate_task_id:
+            gg_sheets.update_task_ids(generate_task_id)
         self._process_sheet_tasks(data_sheets)
         data_sheets.clear()
+        generate_task_id.clear()
         del data_sheets
         gc.collect()
 
