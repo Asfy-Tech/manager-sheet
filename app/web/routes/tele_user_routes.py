@@ -173,6 +173,7 @@ def send_table_to_telegram():
         bot = BotFather()
         data = request.get_json()
         chat_ids = data.get('users')
+        last = data.get('last')
         content = data.get('content')
         image_base64 = data.get("image")
 
@@ -183,18 +184,21 @@ def send_table_to_telegram():
             return jsonify({"success": False, "error": "No image provided"}), 400
 
         image_data = re.sub(r"^data:image\/[a-zA-Z]+;base64,", "", image_base64)
-        image_data = base64.b64decode(image_data)
+        image_bytes = base64.b64decode(image_data)
 
         # Gửi ảnh lên Telegram cho từng chat_id trong danh sách
         errors = []
         user = session.get('user')
-        caption = f"*Người gửi*: {user['name']}"
-        if content and content != '':
-            caption += f"\n{content}"
+        if last:
+            caption = f"*Người gửi*: {user['name']}"
+            if content and content != '':
+                caption += f"\n{content}"
+        else:
+            caption = ''
         for chat_id in chat_ids:
             userTel = TelegramUser.first(chat_id=chat_id)
             if userTel:
-                response = bot.send_photo(chat_id, image_data, caption=caption)
+                response = bot.send_photo(chat_id, image_bytes, caption=caption)
                 if "error" in response:
                     errors.append({"chat_id": chat_id, "error": response["error"]})
         if errors:

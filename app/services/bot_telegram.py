@@ -80,6 +80,7 @@ class BotFather:
         files = {"photo": ("image.png", photo_data, "image/png")}
         try:
             response = requests.post(url, data=payload, files=files, timeout=120)
+            print(response.text)
             response.raise_for_status()
             return response.json()
         except Exception as e:

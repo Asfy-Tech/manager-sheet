@@ -2,6 +2,7 @@ from flask import Flask, render_template, jsonify, request
 from app.web.routes import routes, guests
 from app.monitors.file_watcher import FileWatcher
 from config.settings import settings
+from app.models.base import db_session
 import logging
 from logging.handlers import RotatingFileHandler
 import os
@@ -83,6 +84,9 @@ def create_app():
     #     # Add request logging
     #     app.logger.info(f"Request: {request.method} {request.url}")
     
+    @app.teardown_appcontext
+    def shutdown_session(exception=None):
+        db_session.remove()
     return app
 
 app = create_app()

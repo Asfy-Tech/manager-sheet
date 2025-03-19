@@ -158,7 +158,7 @@ style %}
                   </tr>
                   <tr
                     v-else
-                    class="align-middle"
+                    class="align-middle table-tr-tasks"
                     v-for="(row, index) in filteredData"
                     :key="index"
                   >
@@ -543,40 +543,75 @@ style %}
         loadingTelegram.submit = true;
         try {
           const table = document.getElementById("table-data-sheets");
-          const canvas = await html2canvas(table, {
-            scale: 3,
-            useCORS: true,
-            backgroundColor: '#fff',
-          });
-          const imageData = canvas.toDataURL("image/png");
-          let down = false
-          if(down){
-            const link = document.createElement("a");
-            link.href = imageData;
-            link.download = `Report_${
-              new Date().toISOString().split("T")[0]
-            }.png`;
-            document.body.appendChild(link);
-            link.click();
-  
-            // Xóa khỏi DOM sau khi tải
-            document.body.removeChild(link);
-            showToast("Ảnh đã được lưu thành công!", "success");
-          }else{
-            // Gửi ảnh lên backend
-            const res = await axios.post("/api/telegrams/send-table", {
-              image: imageData,
-              users: modelSelectedUserTelegram.value,
-              content: messageContent.value,
-            });
-  
-            if (res.status === 200 && res.data.success) {
-              showToast(res.data.message || "Ảnh đã gửi thành công!", "success");
-              modelSelectedUserTelegram.value = [];
-              choices.userTelegram.removeActiveItems();
-            } else {
-              showToast(res.data.error || "Có lỗi xảy ra khi gửi ảnh!", "error");
+          const rows = table.querySelectorAll(".table-tr-tasks"); // Lấy danh sách tất cả hàng
+          const rowsPerPart = 15; // Số hàng tối đa mỗi lần chụp
+          const totalRows = rows.length;
+          const parts = Math.ceil(totalRows / rowsPerPart); // Số lần chụp
+
+          let images = [];
+          for (let i = 0; i < parts; i++) {
+            // Ẩn tất cả hàng trước khi chụp
+            rows.forEach((row) => (row.style.display = "none"));
+
+            // Hiện chỉ 10 hàng trong mỗi lần chụp
+            for (
+              let j = i * rowsPerPart;
+              j < (i + 1) * rowsPerPart && j < totalRows;
+              j++
+            ) {
+              rows[j].style.display = "";
             }
+
+            await new Promise((resolve) => setTimeout(resolve, 200)); // Đợi giao diện cập nhật
+
+            // Chụp ảnh phần đang hiển thị
+            const canvas = await html2canvas(table, {
+              scale: 3,
+              useCORS: true,
+              backgroundColor: "#fff",
+            });
+
+            images.push(canvas.toDataURL("image/png"));
+          }
+
+          rows.forEach((row) => (row.style.display = ""));
+
+          let down = false;
+          if (down) {
+            images.forEach((imageData, index) => {
+              const link = document.createElement("a");
+              link.href = imageData;
+              link.download = `Report_Part${index + 1}_${
+                new Date().toISOString().split("T")[0]
+              }.png`;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            });
+            showToast("Ảnh đã được lưu thành công!", "success");
+          } else {
+            for (let i = 0; i < images.length; i++) {
+              const imageData = images[i];
+              const isLast = i === images.length - 1; // Ảnh cuối cùng
+
+              const res = await axios.post("/api/telegrams/send-table", {
+                image: imageData,
+                users: modelSelectedUserTelegram.value,
+                content: messageContent.value,
+                last: isLast, // Truyền thêm last = true cho ảnh cuối cùng
+              });
+
+              if (res.status !== 200 || !res.data.success) {
+                showToast(
+                  res.data.error || "Có lỗi xảy ra khi gửi ảnh!",
+                  "error"
+                );
+                return;
+              }
+            }
+            showToast("Tất cả ảnh đã gửi thành công!", "success");
+            modelSelectedUserTelegram.value = [];
+            choices.userTelegram.removeActiveItems();
           }
 
           const modalElement = document.getElementById("sendTelegramModal");
