@@ -6,6 +6,7 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, CallbackContext
 import asyncio
 from datetime import datetime
+from app.models.companies import Companies
 from telegram.constants import ParseMode
 from app.models.telegram_users import TelegramUser
 from app.models.notifications import Notification
@@ -80,7 +81,6 @@ class BotFather:
         files = {"photo": ("image.png", photo_data, "image/png")}
         try:
             response = requests.post(url, data=payload, files=files, timeout=120)
-            print(response.text)
             response.raise_for_status()
             return response.json()
         except Exception as e:
@@ -215,6 +215,7 @@ class BotFather:
             if taks:
                 message = f"⏳ `{user.full_name} ơi, bạn vừa được giao thêm việc mới: `\n\n"
                 for company, vl in taks.items():
+                    com = Companies.first(name=company)
                     message += f"   _CÔNG TY:_ `{company}`\n"
                     for i, mess in enumerate(vl, 1):
                         deadline_value = mess.get('DEADLINE')
@@ -230,7 +231,9 @@ class BotFather:
                         if mess.get('HỖ TRỢ'):
                             message += f"   *Hỗ trợ:* {mess.get('HỖ TRỢ')}\n"
                         if isinstance(deadline_value, datetime): 
-                            message += f"   *Deadline:* {deadline_value.strftime('%d-%m-%Y')}\n\n"
+                            message += f"   *Deadline:* {deadline_value.strftime('%d-%m-%Y')}\n"
+                        ROW_ID = mess.get('row_id')
+                        message += f"   [Xem chi tiết 🔍]({com.sheet_link}&range=B{ROW_ID})\n\n"
 
                 chat_id = user.chat_id
                 res = self.send_message(chat_id, message)

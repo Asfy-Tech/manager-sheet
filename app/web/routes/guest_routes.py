@@ -72,7 +72,7 @@ def login_api():
 
     token_payload = {
         "user_id": user.id,
-        "exp": datetime.datetime.now(vn_tz) + datetime.timedelta(hours=24)
+        "exp": datetime.datetime.now(vn_tz) + datetime.timedelta(days=30)
     }
     token = jwt.encode(token_payload, settings.APP_KEY, algorithm="HS256")
 

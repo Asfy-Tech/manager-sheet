@@ -1,8 +1,8 @@
 
-# from app.services.google_sheets import GoogleSheets
-# from app.monitors.file_watcher import FileWatcher
-# watcher = FileWatcher(interval=30)
-# watcher._check_files(GoogleSheets())
+from app.services.google_sheets import GoogleSheets
+from app.monitors.file_watcher import FileWatcher
+watcher = FileWatcher(interval=30)
+watcher._check_files(GoogleSheets())
 
 # from app.models.base import Base, engine
 # from app.models.telegram_message import TelegramMessage
@@ -11,7 +11,7 @@
 # from app.models.tasks import Task
 # from app.models.companies import Companies
 # from app.models.notifications import Notification
-# from app.models.notificationw import Notifications
+from app.models.notificationw import Notifications
 # Base.metadata.create_all(engine)
 # from config import hash_password, check_password
 # from datetime import datetime
@@ -26,7 +26,6 @@
 # #   last_login=datetime.now()
 # # )
 
-# # template = Notifications.find(1)
 # task = TelegramMessage.find(52)
 # task2 = TelegramMessage.find(53)
 # send = {
@@ -133,31 +132,10 @@
 # bot = BotFather()
 # bot._send_message_for_user(send)
 
-import json
-from PIL import Image
-from io import BytesIO
-from app.services.bot_telegram import BotFather
-
-bot = BotFather()
-
-# Đọc và resize ảnh trước khi gửi
-def resize_image(image_path, max_height=5000):
-    with Image.open(image_path) as img:
-        width, height = img.size
-        if height > max_height:
-            new_width = int((max_height / height) * width)
-            img = img.resize((new_width, max_height))
-        
-        output = BytesIO()
-        img.save(output, format="PNG")  # Giữ định dạng PNG
-        output.seek(0)
-        return output
-
-# Đọc và resize ảnh
-resized_img = resize_image("a.png")
-
-# Gửi ảnh sau khi resize
-response = bot.send_photo(chat_id=5882159790, photo_data=resized_img, caption="Đây là ảnh mẫu")
-
-# In kết quả
-print(json.dumps(response, indent=4, ensure_ascii=False))
+# import json
+# from app.services.bot_telegram import BotFather
+# bot = BotFather()
+# template = Notifications.find(1)
+# response = bot.send_message(5882159790, template.content)
+# # In kết quả
+# print(json.dumps(response, indent=4, ensure_ascii=False))

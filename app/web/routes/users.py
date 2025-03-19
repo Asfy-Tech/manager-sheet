@@ -33,7 +33,7 @@ def get_users():
             email=data.get('email', ''),
             password=hash_password(data.get('password', '')),
             role=data.get('role'),
-            avatar='https://static-00.iconduck.com/assets.00/avatar-default-symbolic-icon-479x512-n8sg74wg.png',
+            avatar='/static/avatar-default.png',
             last_login=datetime.now()
         )
         

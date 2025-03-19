@@ -1,5 +1,5 @@
 from . import routes, guests
-from flask import render_template, abort, redirect, url_for, session, jsonify
+from flask import render_template, abort, redirect, url_for, session, make_response, jsonify
 from app.models.companies import Companies
 
 @routes.route("/", methods=["GET"])
@@ -48,5 +48,7 @@ def watch_sheet_detail(id):
 
 @routes.route("/api/logout", methods=["POST"])
 def logout():
+    response = make_response(jsonify({"success": True, "message": "Đăng xuất thành công"}))
+    response.set_cookie("token", "", expires=0)
     session.clear()
-    return jsonify({"success": True, "message": "Đăng xuất thành công"}), 200
+    return response

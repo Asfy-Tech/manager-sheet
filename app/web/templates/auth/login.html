@@ -219,7 +219,9 @@ endblock %} {% block style %}
           if (res.status === 200) {
             showToast("", "Đăng nhập thành công", "success");
 
-            localStorage.setItem("authToken", res.data.token);
+            let date = new Date();
+            date.setMonth(date.getMonth() + 1);
+            document.cookie = `token=${res.data.token}; path=/; Max-Age=${60 * 60 * 24 * 30}; Expires=${date.toUTCString()}`;
             localStorage.setItem("user", JSON.stringify(res.data.user));
 
             setTimeout(() => {
