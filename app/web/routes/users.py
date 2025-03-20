@@ -125,3 +125,54 @@ def info_get_users(id):
                 "success": False,
                 "error": str(e)
             }), 500
+
+import os
+from werkzeug.utils import secure_filename
+# Hàm kiểm tra định dạng file hợp lệ
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in {"png", "jpg", "jpeg", "gif"}
+
+@routes.route("/api/users/update", methods=["POST"])
+def update_profile_api():
+    if "user" not in session:
+        return jsonify({"error": "User not authenticated"}), 401
+
+    user_id = session["user"].get('id')
+    user = User.find(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    name = request.form.get("name", "").strip()
+    if not name:
+        return jsonify({"error": "Tên không được để trống"}), 400
+
+    avatar_path = user.avatar
+
+    if "avatar" in request.files:
+        avatar = request.files["avatar"]
+        if avatar and allowed_file(avatar.filename):
+            filename = secure_filename(avatar.filename)
+            new_avatar_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+
+            upload_folder = os.path.dirname(new_avatar_path)
+            if not os.path.exists(upload_folder):
+                os.makedirs(upload_folder)
+
+            # Xóa ảnh cũ nếu không phải ảnh mặc định
+            if user.avatar and user.avatar != "/static/avatar-default.png":
+                old_avatar_path = os.path.join(os.getcwd(), user.avatar.lstrip("/"))
+                if os.path.exists(old_avatar_path):
+                    os.remove(old_avatar_path)
+
+            # Lưu ảnh mới
+            avatar.save(new_avatar_path)
+            avatar_path = "/" + new_avatar_path.replace("\\", "/")  # Chuẩn hóa đường dẫn
+
+    # Cập nhật vào database
+    user.name = name
+    new_path = avatar_path.split("/static/", 1)[-1]
+    user.avatar = '/static/' + new_path
+    user.save()
+    session["user"] = user.to_dict()
+
+    return jsonify({"message": "Cập nhật thành công", "user": {"id": user_id, "name": name, "avatar": avatar_path}}), 200

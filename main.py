@@ -48,6 +48,8 @@ def create_app():
         template_folder=str(settings.TEMPLATES_DIR)
     )
     app.secret_key = settings.APP_KEY
+    app.config["UPLOAD_FOLDER"] = settings.UPLOAD_FOLDER
+
     
     # Configure app
     app.jinja_env.variable_start_string = '[['

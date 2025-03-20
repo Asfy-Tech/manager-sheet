@@ -4,6 +4,21 @@ style %}
   #ul-show-headers-selected[data-popper-placement="bottom-start"] {
     transform: translate3d(-159.2px, 40px, 0px) !important;
   }
+  table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    padding: 0px;
+    /* background-color: var(--vz-card-cap-bg); */
+  }
+  thead {
+    transition: background-color 0.3s ease;
+  }
+
+  thead.stuck {
+  background-color: var(--vz-card-cap-bg);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
 </style>
 {% endblock %} {% block content %}
 <div class="page-content" id="app">
@@ -262,6 +277,20 @@ style %}
   </div>
 </div>
 {% endblock %} {% block script %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    window.addEventListener("scroll", function () {
+      let thead = document.querySelector("table thead");
+      let rect = thead.getBoundingClientRect();
+
+      if (rect.top <= 0) {
+        thead.classList.add("stuck");
+      } else {
+        thead.classList.remove("stuck");
+      }
+    });
+  });
+</script>
 <script src="[[ url_for('static',filename='js/html2canvas.min.js') ]]"></script>
 <script>
   const app = Vue.createApp({

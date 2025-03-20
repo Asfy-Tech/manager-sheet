@@ -1,9 +1,12 @@
-{% extends "layouts/app.html" %} {% block title %}Settings{% endblock %} {% block style %} {% endblock %} {% block content %}
+{% extends "layouts/app.html" %} {% block title %}Settings{% endblock %} {%
+block style %} {% endblock %} {% block content %}
 <div class="page-content" id="app">
   <div class="container-fluid">
     <div class="row">
       <div class="col-12">
-        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+        <div
+          class="page-title-box d-sm-flex align-items-center justify-content-between"
+        >
           <h4 class="mb-sm-0">Cài đặt</h4>
         </div>
       </div>
@@ -12,31 +15,102 @@
       <div class="col-xxl-12">
         <div class="card">
           <div class="card-header">
-            <ul class="nav nav-tabs-custom rounded card-header-tabs border-bottom-0" role="tablist">
+            <ul
+              class="nav nav-tabs-custom rounded card-header-tabs border-bottom-0"
+              role="tablist"
+            >
               <li class="nav-item">
-                <a class="nav-link active" data-bs-toggle="tab" href="#configPassword" role="tab">
-                  <i class="fas fa-key"></i> Đổi mật khẩu
+                <a
+                  class="nav-link active"
+                  data-bs-toggle="tab"
+                  href="#configInfo"
+                  role="tab"
+                >
+                &#x270E; Cập nhật thông tin
+                </a>
+              </li>
+              <li class="nav-item">
+                <a
+                  class="nav-link"
+                  data-bs-toggle="tab"
+                  href="#configPassword"
+                  role="tab"
+                >
+                  &#x1F510; Đổi mật khẩu
                 </a>
               </li>
               {% if session.get('is_admin') %}
-                <li class="nav-item">
-                  <a class="nav-link" data-bs-toggle="tab" href="#configUpload" role="tab">
-                    <i class="fas fa-cog"></i> Cấu hình
-                  </a>
-                </li>
+              <li class="nav-item">
+                <a
+                  class="nav-link"
+                  data-bs-toggle="tab"
+                  href="#configUpload"
+                  role="tab"
+                >
+                  &#x2699; Cấu hình
+                </a>
+              </li>
               {% endif %}
             </ul>
           </div>
           <div class="card-body p-4">
             <div class="tab-content">
+              <div class="tab-pane active" id="configInfo" role="tabpanel">
+                <h5 class="mb-4">Đổi thông tin tài khoản</h5>
+                <form @submit.prevent="updateProfile">
+                  <div class="mb-3 text-center">
+                    <img
+                      :src="user.avatar"
+                      class="rounded-circle"
+                      width="120"
+                      height="120"
+                    />
+                    <div class="mt-2">
+                      <input
+                        type="file"
+                        id="avatar"
+                        @change="handleAvatarUpload"
+                        accept="image/*"
+                        class="form-control"
+                      />
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label for="username" class="form-label"
+                      >Tên tài khoản</label
+                    >
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="username"
+                      v-model="user.name"
+                      required
+                    />
+                  </div>
+                  <div class="d-flex justify-content-end">
+                    <button :disabled="isLoadingInfo" type="submit" class="btn btn-primary">
+                      Cập nhật
+                    </button>
+                  </div>
+                </form>
+              </div>
+
               <div class="tab-pane" id="configUpload" role="tabpanel">
                 <!-- Upload Form -->
                 <form @submit.prevent="uploadConfig" class="mb-4">
                   <div class="row">
                     <div class="col-lg-12">
                       <div class="mb-3">
-                        <label for="configFile" class="form-label">Tải lên cấu hình google api</label>
-                        <input type="file" class="form-control" id="configFile" @change="handleFileUpload" accept=".json" />
+                        <label for="configFile" class="form-label"
+                          >Tải lên cấu hình google api</label
+                        >
+                        <input
+                          type="file"
+                          class="form-control"
+                          id="configFile"
+                          @change="handleFileUpload"
+                          accept=".json"
+                        />
                       </div>
                     </div>
                     <div class="col-lg-12">
@@ -68,11 +142,13 @@
                 </div>
               </div>
 
-              <div class="tab-pane active" id="configPassword" role="tabpanel">
+              <div class="tab-pane" id="configPassword" role="tabpanel">
                 <h5 class="mb-4">Đổi mật khẩu</h5>
                 <form @submit.prevent="changePassword">
                   <div class="mb-3">
-                    <label for="password" class="form-label">Mật khẩu hiện tại</label>
+                    <label for="password" class="form-label"
+                      >Mật khẩu hiện tại</label
+                    >
                     <div class="input-group">
                       <input
                         :type="passwordVisibility.password ? 'text' : 'password'"
@@ -93,9 +169,11 @@
                       </button>
                     </div>
                   </div>
-              
+
                   <div class="mb-3">
-                    <label for="newPassword" class="form-label">Mật khẩu mới</label>
+                    <label for="newPassword" class="form-label"
+                      >Mật khẩu mới</label
+                    >
                     <div class="input-group">
                       <input
                         :type="passwordVisibility.newPassword ? 'text' : 'password'"
@@ -116,9 +194,11 @@
                       </button>
                     </div>
                   </div>
-              
+
                   <div class="mb-3">
-                    <label for="confirmPassword" class="form-label">Xác nhận mật khẩu mới</label>
+                    <label for="confirmPassword" class="form-label"
+                      >Xác nhận mật khẩu mới</label
+                    >
                     <div class="input-group">
                       <input
                         :type="passwordVisibility.confirmPassword ? 'text' : 'password'"
@@ -140,11 +220,12 @@
                     </div>
                   </div>
                   <div class="d-flex justify-content-end">
-                    <button type="submit" class="btn btn-primary">Đổi mật khẩu</button>
+                    <button type="submit" class="btn btn-primary">
+                      Đổi mật khẩu
+                    </button>
                   </div>
                 </form>
               </div>
-              
             </div>
           </div>
         </div>
@@ -156,10 +237,89 @@
 <script>
   const app = Vue.createApp({
     setup() {
+      const isLoadingInfo = Vue.ref(false);
       const credentials = Vue.ref({});
+      const user = Vue.ref({
+        name: "",
+        avatar: "/static/avatar-default.png",
+      });
+
+      const loadUserProfile = async () => {
+        try {
+          let res = await axios.get(
+            "/api/users/[[ session.get('user').get('id') ]]"
+          );
+          if (res.status === 200) {
+            user.value = res.data.data;
+            user.value.avatar =
+              user.value.avatar || "/static/avatar-default.png";
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      };
+
+      const handleAvatarUpload = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            user.value.avatar = e.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+
+      const updateProfile = async () => {
+        isLoadingInfo.value = true
+        const formData = new FormData();
+
+        if (!user.value.name.trim()) {
+          showToast("Tên không được để trống", "error");
+          return;
+        }
+        formData.append("name", user.value.name.trim());
+        const avatarInput = document.getElementById("avatar");
+        if (avatarInput.files.length > 0) {
+          const avatarFile = avatarInput.files[0];
+          const allowedTypes = [
+            "image/jpeg",
+            "image/png",
+            "image/jpg",
+            "image/gif",
+          ];
+          const maxSize = 5 * 1024 * 1024;
+
+          if (!allowedTypes.includes(avatarFile.type)) {
+            showToast("Chỉ chấp nhận file ảnh (JPG, PNG, JPEG, GIF)", "error");
+            return;
+          }
+          if (avatarFile.size > maxSize) {
+            showToast("Dung lượng ảnh không được vượt quá 5MB", "error");
+            return;
+          }
+          formData.append("avatar", avatarFile);
+        }
+
+        try {
+          const res = await axios.post("/api/users/update", formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+          });
+
+          if (res.status === 200) {
+            showToast("Cập nhật thành công", "success");
+            await loadUserProfile();
+          }
+        } catch (e) {
+          console.error(e);
+          showToast("Cập nhật thất bại", "error");
+        }
+        isLoadingInfo.value = false
+      };
 
       Vue.onMounted(async () => {
         await loadConfig();
+        await loadUserProfile();
       });
 
       const loadConfig = async () => {
@@ -250,19 +410,20 @@
           showToast("Vui lòng nhập mật khẩu hiện tại", "error");
           return;
         }
-      
+
         if (!password.value.newPassword) {
           showToast("Vui lòng nhập mật khẩu mới", "error");
           return;
         }
-      
+
         if (password.value.newPassword.length < 6) {
           showToast("Mật khẩu mới phải có ít nhất 6 ký tự", "error");
           return;
         }
-      
+
         // Kiểm tra mật khẩu mạnh
-        const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_]).{6,}$/;
+        const passwordRegex =
+          /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_]).{6,}$/;
         if (!passwordRegex.test(password.value.newPassword)) {
           showToast(
             "Mật khẩu mới phải có ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt",
@@ -270,18 +431,18 @@
           );
           return;
         }
-      
+
         if (password.value.newPassword !== password.value.confirmPassword) {
           showToast("Mật khẩu mới và xác nhận mật khẩu không khớp", "error");
           return;
         }
-      
+
         try {
           const res = await axios.post("/api/settings/change-password", {
             currentPassword: password.value.password,
             newPassword: password.value.newPassword,
           });
-      
+
           if (res.status === 200) {
             showToast("Đổi mật khẩu thành công", "success");
             password.value.password = "";
@@ -292,7 +453,10 @@
           }
         } catch (e) {
           console.error(e);
-          showToast(e?.response?.data?.message || "Lỗi khi đổi mật khẩu", "error");
+          showToast(
+            e?.response?.data?.message || "Lỗi khi đổi mật khẩu",
+            "error"
+          );
         }
       };
 
@@ -316,7 +480,11 @@
         formatLabel,
         formatValue,
         password,
+        user,
+        handleAvatarUpload,
+        updateProfile,
         changePassword,
+        isLoadingInfo,
         passwordVisibility,
         togglePasswordVisibility,
       };

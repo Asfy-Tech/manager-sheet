@@ -58,7 +58,7 @@ class Settings:
     TASK_STATUS_SUCCESS = 'Ðã hoàn thành'
 
     # Upload
-    UPLOAD_FOLDER = BASE_DIR / "uploads"
+    UPLOAD_FOLDER = BASE_DIR / "static/uploads"
 
     TEMPLATE_FILE = BASE_DIR / "message_template.txt"
     TEMPLATE_DEFAULT_FILE = BASE_DIR / "config/default_template.txt"
