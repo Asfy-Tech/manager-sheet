@@ -78,6 +78,13 @@ class GoogleSheets:
 
 
                 if row_idx is None:
+                    try:
+                        Notification.create(
+                            title=f"Thêm task",
+                            content=f"{sheet.get(settings.TASK_USER)} đã được thêm {sheet.get(settings.TASK_ID)}"
+                        )
+                    except Exception as e:
+                        pass
                     # print(f"➡ Task ID {sheet_id} not found, create new")
                     list_created.append(sheet)
                     row_idx = len(values)
@@ -136,6 +143,17 @@ class GoogleSheets:
 
         # Danh sách cần xóa
         tasks_to_delete = current_existing_task_ids - set(existing_task_ids)
+        try:
+            for task_id in tasks_to_delete:
+                try:
+                    Notification.create(
+                        title="Xoá task",
+                        content=f"Task {task_id} đã bị xoá"
+                    )
+                except Exception as e:
+                    pass  # Có thể log lỗi nếu cần
+        except Exception as e:
+            pass  # Có thể log lỗi nếu cần
 
         # if not tasks_to_delete:
         #     print("No task need delete")
